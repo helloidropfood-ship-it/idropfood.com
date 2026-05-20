@@ -25,6 +25,7 @@ export const Modal = ({
 
   return (
     <div
+      className="modal-overlay"
       style={{
         position: 'fixed',
         top: 0,
@@ -43,7 +44,7 @@ export const Modal = ({
       onClick={onClose}
     >
       <div
-        className={`glass-panel ${className}`}
+        className={`glass-panel modal-panel ${className}`}
         style={{
           width: '100%',
           maxWidth,

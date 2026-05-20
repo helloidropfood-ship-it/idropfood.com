@@ -91,7 +91,7 @@ export const Plans = () => {
       )}
 
       {/* Grid of Plans */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+      <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
         {plans
           .sort((a,b) => a.display_order - b.display_order)
           .map(plan => {
@@ -224,7 +224,7 @@ export const Plans = () => {
                 required
               />
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="u-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <FormInput
                   label="Meal Credits"
                   name="credits"

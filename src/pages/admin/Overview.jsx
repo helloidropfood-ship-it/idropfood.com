@@ -36,7 +36,7 @@ export const Overview = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <div>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
+        <h2 className="admin-page-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
           Overview Dashboard
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -45,7 +45,7 @@ export const Overview = () => {
       </div>
 
       {/* Analytics Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+      <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
         <div className="glass-card animate-slide-up delay-100" style={{ padding: '20px' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>Total Registered Users</span>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, marginTop: '8px', color: 'var(--text-primary)' }}>
@@ -76,7 +76,7 @@ export const Overview = () => {
       </div>
 
       {/* Grid columns: Recent Bookings & Purchases */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
+      <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
         
         {/* Recent Purchases */}
         <Card title="Latest Transactions Queue" subtitle="Verify and approve payments for credits load." hoverable={false} className="animate-slide-up delay-200">

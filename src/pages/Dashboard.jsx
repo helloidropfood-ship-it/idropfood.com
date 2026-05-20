@@ -165,9 +165,10 @@ export const Dashboard = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
+    <div className="page-dashboard" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
       {/* Navbar */}
       <header
+        className="dash-header"
         style={{
           borderBottom: '1px solid var(--border-color)',
           background: 'var(--bg-surface-solid)',
@@ -175,6 +176,7 @@ export const Dashboard = () => {
         }}
       >
         <div
+          className="dash-header-inner"
           style={{
             maxWidth: '1200px',
             margin: '0 auto',
@@ -183,7 +185,7 @@ export const Dashboard = () => {
             justifyContent: 'space-between'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="dash-brand-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="logo-grad-dash" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -199,7 +201,7 @@ export const Dashboard = () => {
             <Badge variant="secondary" outline>Corporate Portal</Badge>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="dash-user-bar" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
               👤 {currentUser.name} ({currentUser.floor})
             </span>
@@ -233,6 +235,7 @@ export const Dashboard = () => {
 
       {/* Main Container */}
       <main
+        className="dash-main u-grid"
         style={{
           flex: 1,
           maxWidth: '1200px',
@@ -272,6 +275,7 @@ export const Dashboard = () => {
                 Available Meal Balance
               </p>
               <h2
+                className="dash-credits-value"
                 style={{
                   fontFamily: 'var(--font-display)',
                   fontSize: '3.5rem',
@@ -297,6 +301,7 @@ export const Dashboard = () => {
                 .map(plan => (
                   <div
                     key={plan.id}
+                    className="dash-plan-row"
                     style={{
                       border: '1px solid var(--border-color)',
                       borderRadius: 'var(--radius-md)',
@@ -479,7 +484,7 @@ export const Dashboard = () => {
           )}
 
           {/* Calendar list */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
             {Object.keys(groupedWindows).map(dateStr => {
               const wins = groupedWindows[dateStr];
               const dateObj = new Date(dateStr);

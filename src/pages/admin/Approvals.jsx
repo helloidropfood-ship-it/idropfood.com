@@ -53,7 +53,7 @@ export const Approvals = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <div>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
+        <h2 className="admin-page-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
           Payment Verification Queue
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -77,6 +77,7 @@ export const Approvals = () => {
               return (
                 <div
                   key={proof.id}
+                  className="approval-card u-grid"
                   style={{
                     border: '1px solid var(--border-color)',
                     borderRadius: 'var(--radius-md)',
@@ -130,7 +131,7 @@ export const Approvals = () => {
                   </div>
 
                   {/* Action Review Buttons */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignSelf: 'center' }}>
+                  <div className="approval-card-actions" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignSelf: 'center' }}>
                     <Button variant="primary" onClick={() => handleApprove(proof.purchase_id)} style={{ width: '100%' }}>
                       Approve Payment
                     </Button>
@@ -161,6 +162,7 @@ export const Approvals = () => {
               return (
                 <div
                   key={proof.id}
+                  className="review-log-row"
                   style={{
                     display: 'flex',
                     alignItems: 'center',

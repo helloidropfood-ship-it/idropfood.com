@@ -54,7 +54,7 @@ export const Menu = () => {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+      <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
         {[...dropWindows]
           .sort((a,b) => new Date(a.date) - new Date(b.date))
           .map(win => {

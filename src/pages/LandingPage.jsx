@@ -49,9 +49,10 @@ export const LandingPage = () => {
   const weeklyMenu = getWeeklyMenu();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="page-landing" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header/Navbar */}
       <header
+        className="site-header"
         style={{
           borderBottom: '1px solid var(--border-color)',
           background: 'rgba(6, 7, 9, 0.8)',
@@ -63,6 +64,7 @@ export const LandingPage = () => {
         }}
       >
         <div
+          className="site-header-inner"
           style={{
             maxWidth: '1200px',
             margin: '0 auto',
@@ -96,7 +98,7 @@ export const LandingPage = () => {
           </div>
 
           {/* Navigation CTAs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="site-nav" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button
               onClick={() => navigate('/auth')}
               style={{
@@ -129,6 +131,7 @@ export const LandingPage = () => {
 
       {/* Hero Section */}
       <section
+        className="landing-hero"
         style={{
           padding: '80px 24px',
           maxWidth: '1200px',
@@ -142,7 +145,7 @@ export const LandingPage = () => {
           alignItems: 'center'
         }}
       >
-        <div style={{ textAlign: 'left' }} className="animate-slide-up">
+        <div className="landing-hero-copy animate-slide-up" style={{ textAlign: 'left' }}>
           <Badge variant="accent" pulse style={{ marginBottom: '20px' }}>
             Launching first for Shahrah-e-Faisal Offices
           </Badge>
@@ -173,7 +176,7 @@ export const LandingPage = () => {
             Freshly prepared, small-batch corporate meals delivered directly to your office lobby. Scheduled precisely around Day and Night shift windows.
           </p>
 
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="landing-hero-actions" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Button variant="accent" onClick={() => navigate('/auth')}>
               Schedule Your Drops
             </Button>
@@ -198,7 +201,7 @@ export const LandingPage = () => {
         >
           <div className="hero-mockup-wrapper">
             <div
-              className="glass-panel"
+              className="glass-panel hero-mockup-panel"
               style={{
                 padding: '12px',
                 borderRadius: 'var(--radius-lg)',
@@ -237,6 +240,7 @@ export const LandingPage = () => {
       {/* Info strip */}
       {paymentSettings?.launch_messaging && (
         <div
+          className="launch-strip"
           style={{
             background: 'var(--primary-glow)',
             borderTop: '1px solid var(--border-color)',
@@ -256,6 +260,7 @@ export const LandingPage = () => {
       {/* How it Works */}
       <section
         id="how-it-works"
+        className="section-pad"
         style={{
           padding: '80px 24px',
           maxWidth: '1200px',
@@ -263,7 +268,7 @@ export const LandingPage = () => {
           width: '100%'
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <div className="section-pad-inner" style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -279,7 +284,7 @@ export const LandingPage = () => {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+        <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
           <Card hoverable={true} className="animate-slide-up delay-100" title="1. Select Package" subtitle="Flexible options to match your shifts.">
             <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
               Choose from a launch Trial Drop (1 meal) or subscription credit packs (3, 8, or 16 meals per month). No long-term commitments.
@@ -305,6 +310,7 @@ export const LandingPage = () => {
 
       {/* Shifts Breakdown section */}
       <section
+        className="section-pad"
         style={{
           background: 'rgba(255, 255, 255, 0.01)',
           borderTop: '1px solid var(--border-color)',
@@ -313,7 +319,7 @@ export const LandingPage = () => {
         }}
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
-          <div style={{ textAlign: 'center' }}>
+          <div className="section-pad-inner" style={{ textAlign: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>
               Fixed Drop Windows
             </h2>
@@ -322,7 +328,7 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
             {/* Day Drop */}
             <div
               className="glass-card animate-slide-up delay-100"
@@ -368,8 +374,8 @@ export const LandingPage = () => {
 
       {/* Menu Preview */}
       {weeklyMenu.length > 0 && (
-        <section style={{ padding: '80px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <section className="section-pad" style={{ padding: '80px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <div className="section-pad-inner" style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>
               Active Menu Preview
             </h2>
@@ -444,6 +450,7 @@ export const LandingPage = () => {
 
       {/* Package Plans */}
       <section
+        className="section-pad"
         style={{
           background: 'rgba(255, 255, 255, 0.01)',
           borderTop: '1px solid var(--border-color)',
@@ -453,7 +460,7 @@ export const LandingPage = () => {
         }}
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div className="section-pad-inner" style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>
               Select Your Meal Plan
             </h2>
@@ -463,6 +470,7 @@ export const LandingPage = () => {
           </div>
 
           <div
+            className="u-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -554,7 +562,7 @@ export const LandingPage = () => {
       </section>
 
       {/* FAQ Section */}
-      <section style={{ padding: '80px 24px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+      <section className="section-pad" style={{ padding: '80px 24px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, textAlign: 'center', marginBottom: '40px' }}>
           Frequently Asked Questions
         </h2>
@@ -593,6 +601,7 @@ export const LandingPage = () => {
         }}
       >
         <div
+          className="landing-footer-inner"
           style={{
             maxWidth: '1200px',
             margin: '0 auto',

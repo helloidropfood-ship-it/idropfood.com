@@ -81,9 +81,9 @@ export const Operations = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }} className="ops-panel">
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }} className="no-print">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }} className="no-print admin-page-header">
         <div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
+          <h2 className="admin-page-title" style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
             Kitchen & Delivery Manifests
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -98,7 +98,7 @@ export const Operations = () => {
 
       {/* Filters Strip */}
       <div
-        className="glass-panel no-print"
+        className="glass-panel no-print u-grid"
         style={{
           padding: '20px',
           display: 'grid',
@@ -144,7 +144,7 @@ export const Operations = () => {
       </div>
 
       {/* Metrics Summary Strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }} className="ops-stats">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }} className="ops-stats u-grid">
         <div style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '16px', textAlign: 'center' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Prep Orders</span>
           <h4 style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '4px' }}>{totalMeals}</h4>
@@ -249,7 +249,7 @@ export const Operations = () => {
                         <td style={{ padding: '12px' }} className="no-print">
                           <StatusPill status={book.status} />
                         </td>
-                        <td style={{ padding: '12px', display: 'flex', gap: '8px' }} className="no-print">
+                        <td style={{ padding: '12px', display: 'flex', gap: '8px' }} className="no-print manifest-row-actions">
                           {['scheduled', 'locked'].includes(book.status) ? (
                             <>
                               <button

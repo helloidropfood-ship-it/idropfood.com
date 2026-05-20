@@ -50,6 +50,7 @@ export const AuthPage = () => {
 
   return (
     <div
+      className="page-auth"
       style={{
         minHeight: '100vh',
         display: 'flex',
@@ -79,6 +80,7 @@ export const AuthPage = () => {
       </div>
 
       <div
+        className="auth-cards-grid u-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
@@ -126,7 +128,7 @@ export const AuthPage = () => {
               required
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="auth-form-row u-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <FormInput
                 label="Office Floor"
                 name="floor"

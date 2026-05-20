@@ -31,9 +31,10 @@ export const AdminLayout = ({ children }) => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-base)' }}>
+    <div className="admin-shell" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-base)' }}>
       {/* Sidebar */}
       <aside
+        className="admin-sidebar"
         style={{
           width: '280px',
           borderRight: '1px solid var(--border-color)',
@@ -47,6 +48,7 @@ export const AdminLayout = ({ children }) => {
       >
         {/* Brand Header */}
         <div
+          className="admin-sidebar-header"
           style={{
             padding: '24px',
             borderBottom: '1px solid var(--border-color)',
@@ -79,7 +81,7 @@ export const AdminLayout = ({ children }) => {
         </div>
 
         {/* Sidebar Nav */}
-        <nav style={{ padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+        <nav className="admin-sidebar-nav" style={{ padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
           {menuItems.map(item => {
             const hasPermission = item.roles.includes(currentAdmin.role);
             if (!hasPermission) return null;
@@ -130,6 +132,7 @@ export const AdminLayout = ({ children }) => {
 
         {/* Sidebar Footer */}
         <div
+          className="admin-sidebar-footer"
           style={{
             padding: '20px',
             borderTop: '1px solid var(--border-color)',
@@ -175,7 +178,7 @@ export const AdminLayout = ({ children }) => {
       </aside>
 
       {/* Page Body Container */}
-      <main style={{ flex: 1, padding: '40px', overflowY: 'auto', maxHeight: '100vh' }}>
+      <main className="admin-main" style={{ flex: 1, padding: '40px', overflowY: 'auto', maxHeight: '100vh' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           {children}
         </div>

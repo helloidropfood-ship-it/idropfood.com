@@ -141,7 +141,7 @@ export const Settings = () => {
         {/* Bank Credentials */}
         <Card title="Manual Payment Gateways" subtitle="Bank accounts details displayed to users in the checkout portal.">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
               <FormInput
                 label="Bank Name"
                 name="bankName"
@@ -158,7 +158,7 @@ export const Settings = () => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
               <FormInput
                 label="Account Number"
                 name="bankNumber"
@@ -175,7 +175,7 @@ export const Settings = () => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
               <FormInput
                 label="Raast Phone ID"
                 name="raastId"
