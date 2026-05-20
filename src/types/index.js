@@ -9,7 +9,7 @@
  * @property {string} name - User's full name
  * @property {string} phone - WhatsApp number used for lightweight identity
  * @property {string} [email] - Optional email address
- * @property {string} company - Company location (Default: 'Ibex Shahrah-e-Faisal')
+ * @property {string} company - Company location (Default: 'Shahrah-e-Faisal')
  * @property {string} floor - Floor number (e.g., '3rd Floor')
  * @property {string} department - Department / Team name
  * @property {string} [delivery_notes] - Optional dispatch instruction text

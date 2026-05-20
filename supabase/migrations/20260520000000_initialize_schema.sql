@@ -36,7 +36,7 @@ CREATE TABLE public.users (
     name VARCHAR(255) NOT NULL,
     phone VARCHAR(50) UNIQUE NOT NULL, -- WhatsApp number used for identity
     email VARCHAR(255) NULL,
-    company VARCHAR(100) NOT NULL DEFAULT 'Ibex Shahrah-e-Faisal',
+    company VARCHAR(100) NOT NULL DEFAULT 'Shahrah-e-Faisal',
     floor VARCHAR(50) NOT NULL,
     department VARCHAR(100) NOT NULL,
     delivery_notes TEXT NULL,
