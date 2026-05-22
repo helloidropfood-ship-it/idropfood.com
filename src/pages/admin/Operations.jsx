@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMockData } from '../../context/MockDataContext';
+import { useMockData } from '../../context/AppDataContext';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import FormInput from '../../components/FormInput';
@@ -14,6 +14,22 @@ export const Operations = () => {
     markBookingDelivered,
     markBookingMissed
   } = useMockData();
+
+  const handleMarkDelivered = async (bookingId) => {
+    try {
+      await markBookingDelivered(bookingId);
+    } catch (err) {
+      alert(err.message || 'Failed to mark booking as delivered.');
+    }
+  };
+
+  const handleMarkMissed = async (bookingId) => {
+    try {
+      await markBookingMissed(bookingId);
+    } catch (err) {
+      alert(err.message || 'Failed to mark booking as missed.');
+    }
+  };
 
   // Filter state
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -253,7 +269,7 @@ export const Operations = () => {
                           {['scheduled', 'locked'].includes(book.status) ? (
                             <>
                               <button
-                                onClick={() => markBookingDelivered(book.id)}
+                                onClick={() => handleMarkDelivered(book.id)}
                                 style={{
                                   background: 'rgba(16, 185, 129, 0.1)',
                                   border: '1px solid rgba(16, 185, 129, 0.2)',
@@ -268,7 +284,7 @@ export const Operations = () => {
                                 Delivered
                               </button>
                               <button
-                                onClick={() => markBookingMissed(book.id)}
+                                onClick={() => handleMarkMissed(book.id)}
                                 style={{
                                   background: 'rgba(239, 68, 68, 0.1)',
                                   border: '1px solid rgba(239, 68, 68, 0.2)',

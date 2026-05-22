@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMockData } from '../../context/MockDataContext';
+import { useMockData } from '../../context/AppDataContext';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import FormInput from '../../components/FormInput';
@@ -136,7 +136,8 @@ export const Schedule = () => {
                       { value: 'locked', label: 'Locked' },
                       { value: 'full', label: 'Full' },
                       { value: 'completed', label: 'Completed' },
-                      { value: 'hidden/cancelled', label: 'Hidden / Cancelled' }
+                      { value: 'hidden', label: 'Hidden' },
+                      { value: 'cancelled', label: 'Cancelled' }
                     ]}
                     style={{ margin: 0, padding: '8px 12px', fontSize: '0.8rem' }}
                   />

@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { AppDataContext } from './AppDataContext';
 
-const MockDataContext = createContext();
-
-export const useMockData = () => useContext(MockDataContext);
+export { useMockData } from './AppDataContext';
 
 export const MockDataProvider = ({ children }) => {
   // 1. Core State
@@ -215,7 +214,7 @@ export const MockDataProvider = ({ children }) => {
   };
 
   // 4. Booking & Purchase Operations
-  const buyPackage = (planId, paymentMethod, submittedAmount, receiptBase64, selectedSlots = []) => {
+  const buyPackage = (planId, paymentMethod, submittedAmount, receiptFile, selectedSlots = []) => {
     if (!currentUser) return null;
     const plan = plans.find(p => p.id === planId);
     if (!plan) return null;
@@ -233,10 +232,14 @@ export const MockDataProvider = ({ children }) => {
       created_at: new Date().toISOString()
     };
 
+    const proofUrl = (receiptFile && typeof receiptFile === 'object')
+      ? URL.createObjectURL(receiptFile)
+      : (typeof receiptFile === 'string' ? receiptFile : 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&auto=format&fit=crop&q=60');
+
     const newProof = {
       id: `proof-${Date.now()}`,
       purchase_id: purchaseId,
-      proof_image_url: receiptBase64 || 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&auto=format&fit=crop&q=60', // Mock receipt image placeholder
+      proof_image_url: proofUrl,
       payment_method: paymentMethod,
       submitted_amount: parseFloat(submittedAmount),
       transaction_reference: `REF-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -277,6 +280,40 @@ export const MockDataProvider = ({ children }) => {
 
     return newPurchase;
   };
+
+  const uploadPendingProof = (purchaseId, receiptFile, submittedAmount, paymentMethod) => {
+    const proofUrl = (receiptFile && typeof receiptFile === 'object')
+      ? URL.createObjectURL(receiptFile)
+      : 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300&auto=format&fit=crop&q=60';
+
+    const newProof = {
+      id: `proof-${Date.now()}`,
+      purchase_id: purchaseId,
+      proof_image_url: proofUrl,
+      payment_method: paymentMethod,
+      submitted_amount: parseFloat(submittedAmount),
+      transaction_reference: `REF-${Math.floor(100000 + Math.random() * 900000)}`,
+      status: 'pending',
+      admin_notes: null,
+      reviewed_by: null,
+      reviewed_at: null,
+      created_at: new Date().toISOString()
+    };
+
+    const updatedProofs = [newProof, ...paymentProofs];
+    setPaymentProofs(updatedProofs);
+    localSet('paymentProofs', updatedProofs);
+
+    const updatedPurchases = purchases.map(p => {
+      if (p.id === purchaseId) {
+        return { ...p, payment_status: 'proof_uploaded' };
+      }
+      return p;
+    });
+    setPurchases(updatedPurchases);
+    localSet('purchases', updatedPurchases);
+  };
+
 
   // 5. Backend Logic Executed by Admin
   const approvePurchase = (purchaseId, reviewerId) => {
@@ -472,15 +509,33 @@ export const MockDataProvider = ({ children }) => {
 
   // 7. Operations Actions (Admin Side)
   const markBookingDelivered = (bookingId) => {
-    const updatedBookings = bookings.map(b => b.id === bookingId ? { ...b, status: 'delivered' } : b);
-    setBookings(updatedBookings);
-    localSet('bookings', updatedBookings);
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const win = dropWindows.find(w => w.id === booking.drop_window_id);
+    const cutoffPassed = win && new Date() >= new Date(win.cutoff_time);
+    
+    if (booking.status === 'locked' || (booking.status === 'scheduled' && cutoffPassed)) {
+      const updatedBookings = bookings.map(b => b.id === bookingId ? { ...b, status: 'delivered' } : b);
+      setBookings(updatedBookings);
+      localSet('bookings', updatedBookings);
+    } else {
+      throw new Error("Failed to mark booking delivered. Ensure the cutoff time has passed and the booking is locked.");
+    }
   };
 
   const markBookingMissed = (bookingId) => {
-    const updatedBookings = bookings.map(b => b.id === bookingId ? { ...b, status: 'missed' } : b);
-    setBookings(updatedBookings);
-    localSet('bookings', updatedBookings);
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const win = dropWindows.find(w => w.id === booking.drop_window_id);
+    const cutoffPassed = win && new Date() >= new Date(win.cutoff_time);
+    
+    if (booking.status === 'locked' || (booking.status === 'scheduled' && cutoffPassed)) {
+      const updatedBookings = bookings.map(b => b.id === bookingId ? { ...b, status: 'missed' } : b);
+      setBookings(updatedBookings);
+      localSet('bookings', updatedBookings);
+    } else {
+      throw new Error("Failed to mark booking missed. Ensure the cutoff time has passed and the booking is locked.");
+    }
   };
 
   const createDropWindow = (date, name, startTime, endTime, capacity, cutoff) => {
@@ -507,15 +562,27 @@ export const MockDataProvider = ({ children }) => {
     localSet('dropWindows', updated);
   };
 
-  const assignMenu = (windowId, mealName, description, allergens, imageUrl) => {
+  const uploadMenuImage = async (file) => {
+    try {
+      return URL.createObjectURL(file);
+    } catch (e) {
+      return 'https://images.unsplash.com/photo-1546069901?w=400';
+    }
+  };
+
+  const assignMenu = (windowId, mealName, description, allergens, imageUrl, active = true) => {
     let existingMenu = menuItems.find(m => m.drop_window_id === windowId);
     let updated;
     if (existingMenu) {
-      existingMenu.meal_name = mealName;
-      existingMenu.description = description;
-      existingMenu.allergens = allergens;
-      existingMenu.image_url = imageUrl;
-      updated = menuItems.map(m => m.id === existingMenu.id ? existingMenu : m);
+      const updatedMenu = {
+        ...existingMenu,
+        meal_name: mealName,
+        description,
+        allergens,
+        image_url: imageUrl,
+        active
+      };
+      updated = menuItems.map(m => m.id === existingMenu.id ? updatedMenu : m);
     } else {
       const newMenu = {
         id: `menu-${Date.now()}`,
@@ -524,7 +591,7 @@ export const MockDataProvider = ({ children }) => {
         description: description,
         allergens: allergens,
         image_url: imageUrl || 'https://images.unsplash.com/photo-1546069901?w=400',
-        active: true
+        active
       };
       updated = [...menuItems, newMenu];
     }
@@ -561,8 +628,9 @@ export const MockDataProvider = ({ children }) => {
   };
 
   return (
-    <MockDataContext.Provider
+    <AppDataContext.Provider
       value={{
+        isRealSupabase: false,
         users,
         currentUser,
         adminUsers,
@@ -579,6 +647,7 @@ export const MockDataProvider = ({ children }) => {
         loginAdmin,
         logoutAdmin,
         buyPackage,
+        uploadPendingProof,
         approvePurchase,
         rejectPurchase,
         scheduleBooking,
@@ -587,6 +656,7 @@ export const MockDataProvider = ({ children }) => {
         markBookingMissed,
         createDropWindow,
         updateDropWindow,
+        uploadMenuImage,
         assignMenu,
         updatePlans,
         createPlan,
@@ -594,6 +664,6 @@ export const MockDataProvider = ({ children }) => {
       }}
     >
       {children}
-    </MockDataContext.Provider>
+    </AppDataContext.Provider>
   );
 };

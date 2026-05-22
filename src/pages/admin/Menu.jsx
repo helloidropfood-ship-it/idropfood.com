@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useMockData } from '../../context/MockDataContext';
+import { useMockData } from '../../context/AppDataContext';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import FormInput from '../../components/FormInput';
 import Badge from '../../components/Badge';
 
 export const Menu = () => {
-  const { dropWindows, menuItems, assignMenu } = useMockData();
+  const { dropWindows, menuItems, assignMenu, uploadMenuImage } = useMockData();
 
   // Menu Modal State
   const [selectedWindow, setSelectedWindow] = useState(null);
@@ -14,6 +14,8 @@ export const Menu = () => {
   const [description, setDescription] = useState('');
   const [allergens, setAllergens] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [active, setActive] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
   const handleOpenAssign = (win) => {
@@ -24,13 +26,53 @@ export const Menu = () => {
       setDescription(existingMenu.description);
       setAllergens(existingMenu.allergens || '');
       setImageUrl(existingMenu.image_url || '');
+      setActive(existingMenu.active !== false);
     } else {
       setMealName('');
       setDescription('');
       setAllergens('');
       setImageUrl('');
+      setActive(true);
     }
     setError('');
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setError('');
+
+    // 5MB Size Limit
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('Meal image exceeds the 5MB limit. Please upload a smaller image.');
+      e.target.value = '';
+      return;
+    }
+
+    // Format Restrictions: JPG, JPEG, PNG, WEBP
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExt)) {
+      setError('Only JPG, JPEG, PNG, and WEBP image files are allowed.');
+      e.target.value = '';
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const url = await uploadMenuImage(file);
+      setImageUrl(url);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to upload image. Please try again.');
+      e.target.value = '';
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleAssignSubmit = (e) => {
@@ -39,7 +81,7 @@ export const Menu = () => {
       setError('Please enter meal name and description.');
       return;
     }
-    assignMenu(selectedWindow.id, mealName, description, allergens, imageUrl);
+    assignMenu(selectedWindow.id, mealName, description, allergens, imageUrl, active);
     setSelectedWindow(null);
   };
 
@@ -89,7 +131,10 @@ export const Menu = () => {
                       />
                     )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{menu.meal_name}</strong>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{menu.meal_name}</strong>
+                        {menu.active === false && <Badge variant="secondary" outline>Inactive</Badge>}
+                      </div>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{menu.description}</p>
                       {menu.allergens && (
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -172,13 +217,78 @@ export const Menu = () => {
                 placeholder="e.g. Soy, Gluten, Peanuts"
               />
 
-              <FormInput
-                label="Meal Image URL (Optional)"
-                name="imageUrl"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-              />
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px' }}>
+                  Meal Image {uploading && <span style={{ color: 'var(--accent)', fontSize: '0.8rem', marginLeft: '8px' }}>(Uploading...)</span>}
+                </label>
+                {imageUrl && (
+                  <div style={{ position: 'relative', display: 'inline-block', marginBottom: '12px' }}>
+                    <img
+                      src={imageUrl}
+                      alt="Meal Preview"
+                      style={{
+                        width: '100px',
+                        height: '100px',
+                        borderRadius: 'var(--radius-sm)',
+                        objectFit: 'cover',
+                        border: '1px solid var(--border-color)'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrl('')}
+                      style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--error)',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px'
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="form-input"
+                  style={{
+                    padding: '8px',
+                    height: 'auto',
+                    cursor: uploading ? 'not-allowed' : 'pointer'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0' }}>
+                <input
+                  id="menu-active-checkbox"
+                  type="checkbox"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    cursor: 'pointer',
+                    accentColor: 'var(--accent)'
+                  }}
+                />
+                <label htmlFor="menu-active-checkbox" style={{ fontSize: '0.85rem', color: 'var(--text-primary)', cursor: 'pointer', userSelect: 'none' }}>
+                  Meal Available for Booking (Active)
+                </label>
+              </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
                 <Button variant="secondary" onClick={() => setSelectedWindow(null)}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMockData } from '../context/MockDataContext';
+import { useMockData } from '../context/AppDataContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Badge from '../components/Badge';

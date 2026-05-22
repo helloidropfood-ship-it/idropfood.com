@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useMockData } from '../context/MockDataContext';
+import { useMockData } from '../context/AppDataContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
@@ -18,12 +18,12 @@ export const Dashboard = () => {
     logoutCustomer,
     plans,
     purchases,
-    paymentProofs,
     dropWindows,
     menuItems,
     bookings,
     paymentSettings,
     buyPackage,
+    uploadPendingProof,
     scheduleBooking,
     cancelBookingBeforeCutoff
   } = useMockData();
@@ -43,9 +43,58 @@ export const Dashboard = () => {
   const [receiptFile, setReceiptFile] = useState(null);
   const [checkoutError, setCheckoutError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
   
   // Dynamic slot selection during checkout (required for Trial Drop, optional for others)
   const [preSelectedSlots, setPreSelectedSlots] = useState([]);
+
+  // Retry Proof Upload states
+  const [isRetryOpen, setIsRetryOpen] = useState(false);
+  const [retryPurchase, setRetryPurchase] = useState(null);
+  const [retryPaymentMethod, setRetryPaymentMethod] = useState('bank_transfer');
+  const [retryAmount, setRetryAmount] = useState('');
+  const [retryFile, setRetryFile] = useState(null);
+  const [retryError, setRetryError] = useState('');
+  const [loadingRetry, setLoadingRetry] = useState(false);
+
+  const handleOpenRetryUpload = (purchase) => {
+    const plan = plans.find(p => p.id === purchase.plan_id);
+    setRetryPurchase(purchase);
+    setRetryAmount(plan ? plan.price.toString() : '');
+    setRetryPaymentMethod(purchase.payment_method || 'bank_transfer');
+    setRetryFile(null);
+    setRetryError('');
+    setIsRetryOpen(true);
+  };
+
+  const handleRetrySubmit = async (e) => {
+    e.preventDefault();
+    if (!retryFile) {
+      setRetryError('Please upload a screenshot of your payment receipt.');
+      return;
+    }
+    setRetryError('');
+    setLoadingRetry(true);
+    try {
+      await uploadPendingProof(retryPurchase.id, retryFile, retryAmount, retryPaymentMethod);
+      setIsRetryOpen(false);
+      setSuccessMessage('Payment proof uploaded successfully!');
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (err) {
+      setRetryError(err.message || 'Failed to upload proof. Please try again.');
+    } finally {
+      setLoadingRetry(false);
+    }
+  };
+
+  const handleOpenCheckout = (plan) => {
+    setSelectedPlan(plan);
+    setSubmittedAmount(plan.price.toString());
+    setPreSelectedSlots([]);
+    setReceiptFile(null);
+    setCheckoutError('');
+    setIsCheckoutOpen(true);
+  };
 
   // Check if there was an incoming checkout request from Landing
   useEffect(() => {
@@ -87,15 +136,6 @@ export const Dashboard = () => {
     });
   });
 
-  const handleOpenCheckout = (plan) => {
-    setSelectedPlan(plan);
-    setSubmittedAmount(plan.price.toString());
-    setPreSelectedSlots([]);
-    setReceiptFile(null);
-    setCheckoutError('');
-    setIsCheckoutOpen(true);
-  };
-
   const handleToggleCheckoutSlot = (slotId) => {
     if (selectedPlan?.id === 'plan-trial') {
       // Trial drop is only 1 meal, replace selection
@@ -115,7 +155,7 @@ export const Dashboard = () => {
     }
   };
 
-  const handleCheckoutSubmit = (e) => {
+  const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
     if (!receiptFile) {
       setCheckoutError('Please upload a screenshot of your payment receipt.');
@@ -127,25 +167,28 @@ export const Dashboard = () => {
       return;
     }
 
-    // Convert file to mock base64 for visualization
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      buyPackage(selectedPlan.id, paymentMethod, submittedAmount, reader.result, preSelectedSlots);
+    setCheckoutError('');
+    setLoadingCheckout(true);
+    try {
+      await buyPackage(selectedPlan.id, paymentMethod, submittedAmount, receiptFile, preSelectedSlots);
       setIsCheckoutOpen(false);
       setSuccessMessage(`Checkout submitted! Package pending verification. Your draft bookings have been logged.`);
       setTimeout(() => setSuccessMessage(''), 5000);
-    };
-    reader.readAsDataURL(receiptFile);
+    } catch (err) {
+      setCheckoutError(err.message || 'Failed to complete checkout. Please try again.');
+    } finally {
+      setLoadingCheckout(false);
+    }
   };
 
-  const handleScheduleClick = (windowId) => {
+  const handleScheduleClick = async (windowId) => {
     if (activeCredits <= 0) {
       setCheckoutError('No remaining credits. Select a pack to top up.');
       setTimeout(() => setCheckoutError(''), 4000);
       return;
     }
 
-    const res = scheduleBooking(currentUser.id, windowId);
+    const res = await scheduleBooking(currentUser.id, windowId);
     if (!res.success) {
       alert(res.message);
     } else {
@@ -154,8 +197,8 @@ export const Dashboard = () => {
     }
   };
 
-  const handleCancelClick = (bookingId) => {
-    const res = cancelBookingBeforeCutoff(bookingId);
+  const handleCancelClick = async (bookingId) => {
+    const res = await cancelBookingBeforeCutoff(bookingId);
     if (!res.success) {
       alert(res.message);
     } else {
@@ -418,6 +461,26 @@ export const Dashboard = () => {
                             <div>
                               <StatusPill status={pur.payment_status} />
                             </div>
+                            {pur.payment_status === 'pending_payment' && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenRetryUpload(pur)}
+                                style={{
+                                  background: 'rgba(245, 158, 11, 0.1)',
+                                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                                  color: 'var(--accent)',
+                                  fontSize: '0.72rem',
+                                  padding: '3px 8px',
+                                  borderRadius: 'var(--radius-sm)',
+                                  cursor: 'pointer',
+                                  marginTop: '4px',
+                                  fontWeight: 600,
+                                  display: 'inline-block'
+                                }}
+                              >
+                                Retry Upload
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
@@ -684,8 +747,93 @@ export const Dashboard = () => {
               </span>
             )}
 
-            <Button type="submit" variant="accent" style={{ marginTop: '10px' }}>
-              Confirm Payment & Submit
+            <Button type="submit" variant="accent" style={{ marginTop: '10px' }} disabled={loadingCheckout}>
+              {loadingCheckout ? 'Submitting...' : 'Confirm Payment & Submit'}
+            </Button>
+          </form>
+        </Modal>
+      )}
+
+      {/* Retry Upload Modal */}
+      {isRetryOpen && retryPurchase && (
+        <Modal isOpen={isRetryOpen} onClose={() => setIsRetryOpen(false)} title="Upload Payment Proof">
+          <form onSubmit={handleRetrySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}
+            >
+              <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--accent)' }}>
+                1. Transfer exact amount manually:
+              </h4>
+              <p style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: '4px 0' }}>
+                Rs. {parseFloat(retryAmount).toLocaleString()}
+              </p>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                {paymentSettings?.instruction_text}
+              </p>
+
+              <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '8px', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem' }}>
+                <div>🏦 <span style={{ color: 'var(--text-muted)' }}>Bank:</span> <strong>{paymentSettings?.bank_name}</strong></div>
+                <div>👤 <span style={{ color: 'var(--text-muted)' }}>Title:</span> <strong>{paymentSettings?.bank_account_title}</strong></div>
+                <div>🔢 <span style={{ color: 'var(--text-muted)' }}>Account:</span> <strong>{paymentSettings?.bank_account_number}</strong></div>
+                <div>🌍 <span style={{ color: 'var(--text-muted)' }}>IBAN:</span> <code>{paymentSettings?.bank_iban}</code></div>
+                <div>📱 <span style={{ color: 'var(--text-muted)' }}>Raast ID:</span> <strong>{paymentSettings?.raast_id}</strong></div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                2. Input payment credentials:
+              </h4>
+
+              <FormInput
+                label="Payment Method"
+                name="retryPaymentMethod"
+                type="select"
+                value={retryPaymentMethod}
+                onChange={(e) => setRetryPaymentMethod(e.target.value)}
+                options={[
+                  { value: 'bank_transfer', label: 'Bank Transfer (Meezan/Other)' },
+                  { value: 'raast', label: 'Raast Transfer' },
+                  { value: 'easypaisa', label: 'EasyPaisa' },
+                  { value: 'jazzcash', label: 'JazzCash' }
+                ]}
+                required
+              />
+
+              <FormInput
+                label="Submitted Amount (PKR)"
+                name="retryAmount"
+                type="number"
+                value={retryAmount}
+                onChange={(e) => setRetryAmount(e.target.value)}
+                required
+              />
+
+              <FileUploader
+                label="Transaction Receipt Image"
+                value={retryFile}
+                onChange={(file) => setRetryFile(file)}
+                required
+              />
+            </div>
+
+            {retryError && (
+              <span style={{ color: 'var(--error)', fontSize: '0.8rem' }}>
+                ⚠️ {retryError}
+              </span>
+            )}
+
+            <Button type="submit" variant="accent" style={{ marginTop: '10px' }} disabled={loadingRetry}>
+              {loadingRetry ? 'Uploading...' : 'Submit Payment Proof'}
             </Button>
           </form>
         </Modal>

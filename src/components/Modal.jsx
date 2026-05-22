@@ -82,7 +82,6 @@ export const Modal = ({
             onClick={onClose}
             style={{
               background: 'none',
-              border: 'none',
               color: 'var(--text-secondary)',
               cursor: 'pointer',
               padding: '6px',

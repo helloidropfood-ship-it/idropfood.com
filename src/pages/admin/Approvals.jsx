@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMockData } from '../../context/MockDataContext';
+import { useMockData } from '../../context/AppDataContext';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import FormInput from '../../components/FormInput';
@@ -95,9 +95,9 @@ export const Approvals = () => {
                       Payment Receipt Preview
                     </span>
                     <img
-                      src={proof.proof_image_url}
+                      src={proof.signed_proof_url || proof.proof_image_url}
                       alt="Receipt Screenshot"
-                      onClick={() => setZoomUrl(proof.proof_image_url)}
+                      onClick={() => setZoomUrl(proof.signed_proof_url || proof.proof_image_url)}
                       style={{
                         width: '120px',
                         height: '160px',

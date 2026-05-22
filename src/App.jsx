@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { MockDataProvider } from './context/MockDataContext';
+import { AppDataProvider } from './context/AppDataProvider';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
@@ -15,7 +15,7 @@ import Settings from './pages/admin/Settings';
 
 function App() {
   return (
-    <MockDataProvider>
+    <AppDataProvider>
       <BrowserRouter>
         <Routes>
           {/* Customer Facing Routes */}
@@ -89,7 +89,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-    </MockDataProvider>
+    </AppDataProvider>
   );
 }
 

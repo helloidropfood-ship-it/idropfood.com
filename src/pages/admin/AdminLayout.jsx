@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useMockData } from '../../context/MockDataContext';
+import { useMockData } from '../../context/AppDataContext';
 import Badge from '../../components/Badge';
 
 export const AdminLayout = ({ children }) => {
@@ -8,12 +8,32 @@ export const AdminLayout = ({ children }) => {
   const location = useLocation();
   const { currentAdmin, logoutAdmin, paymentProofs } = useMockData();
 
-  // Redirect if not authenticated as admin
+  // Redirect if not authenticated as admin, or unauthorized for the current path
   useEffect(() => {
     if (!currentAdmin) {
       navigate('/auth');
+      return;
     }
-  }, [currentAdmin, navigate]);
+
+    const currentPath = location.pathname;
+    const menuItemsConfig = [
+      { path: '/admin/overview', roles: ['owner', 'admin', 'operations'] },
+      { path: '/admin/approvals', roles: ['owner', 'admin'] },
+      { path: '/admin/operations', roles: ['owner', 'admin', 'operations'] },
+      { path: '/admin/schedule', roles: ['owner', 'admin'] },
+      { path: '/admin/menu', roles: ['owner', 'admin'] },
+      { path: '/admin/plans', roles: ['owner'] },
+      { path: '/admin/settings', roles: ['owner', 'admin'] }
+    ];
+
+    const matchedItem = menuItemsConfig.find(item => item.path === currentPath);
+    if (matchedItem) {
+      const hasPermission = matchedItem.roles.includes(currentAdmin.role);
+      if (!hasPermission) {
+        navigate('/admin/overview');
+      }
+    }
+  }, [currentAdmin, location.pathname, navigate]);
 
   if (!currentAdmin) return null;
 

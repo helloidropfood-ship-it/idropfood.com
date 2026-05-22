@@ -4,7 +4,11 @@
 -- ==========================================
 -- 1. CLEANUP EXISTING TABLES (IF RETRYING)
 -- ==========================================
-DROP TRIGGER IF EXISTS bookings_booked_count_trigger ON public.bookings;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'bookings') THEN
+    DROP TRIGGER IF EXISTS bookings_booked_count_trigger ON public.bookings;
+  END IF;
+END $$;
 DROP FUNCTION IF EXISTS update_window_booked_count();
 DROP FUNCTION IF EXISTS approve_purchase(UUID, UUID);
 DROP FUNCTION IF EXISTS reject_purchase(UUID, UUID, TEXT);
@@ -36,7 +40,7 @@ CREATE TABLE public.users (
     name VARCHAR(255) NOT NULL,
     phone VARCHAR(50) UNIQUE NOT NULL, -- WhatsApp number used for identity
     email VARCHAR(255) NULL,
-    company VARCHAR(100) NOT NULL DEFAULT 'Shahrah-e-Faisal',
+    company VARCHAR(100) NOT NULL DEFAULT 'Ibex Shahrah-e-Faisal',
     floor VARCHAR(50) NOT NULL,
     department VARCHAR(100) NOT NULL,
     delivery_notes TEXT NULL,
@@ -103,7 +107,7 @@ CREATE TABLE public.drop_windows (
     capacity INTEGER NOT NULL DEFAULT 20,
     booked_count INTEGER DEFAULT 0 NOT NULL, -- Managed via trigger
     cutoff_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    status VARCHAR(30) DEFAULT 'open' NOT NULL CHECK (status IN ('open', 'locked', 'full', 'completed', 'hidden/cancelled')),
+    status VARCHAR(30) DEFAULT 'open' NOT NULL CHECK (status IN ('open', 'locked', 'full', 'completed', 'hidden', 'cancelled')),
     active BOOLEAN DEFAULT true NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE(date, window_name)
@@ -204,7 +208,7 @@ BEGIN
         WHERE drop_window_id = OLD.drop_window_id
           AND status IN ('scheduled', 'locked', 'delivered', 'missed')
       )
-      WHERE id = OLD.old_window_id;
+      WHERE id = OLD.drop_window_id;
     END IF;
   ELSIF TG_OP = 'DELETE' THEN
     IF OLD.status IN ('scheduled', 'locked', 'delivered', 'missed') THEN
@@ -370,14 +374,18 @@ BEGIN
   v_total_credits := v_purchase.total_credits;
 
   -- 3. Loop through associated draft bookings
+  -- NOTE: booked_count is re-queried live on each iteration so that multiple drafts
+  --       targeting the same window compete correctly for remaining capacity.
   FOR v_booking IN 
-    SELECT b.*, w.capacity, w.booked_count, w.cutoff_time, w.active, w.status as window_status
+    SELECT b.*, w.capacity, w.cutoff_time, w.active, w.status as window_status
     FROM public.bookings b
     JOIN public.drop_windows w ON b.drop_window_id = w.id
     WHERE b.purchase_id = p_purchase_id AND b.status = 'draft'
   LOOP
-    -- Calculate actual slots left
-    v_capacity_left := v_booking.capacity - v_booking.booked_count;
+    -- Re-query the CURRENT booked_count to account for earlier iterations
+    SELECT booked_count INTO v_capacity_left
+    FROM public.drop_windows WHERE id = v_booking.drop_window_id;
+    v_capacity_left := v_booking.capacity - v_capacity_left;
 
     -- Verify capacity, cutoff time, and status
     IF v_booking.active 
@@ -654,9 +662,17 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function: Mark Booking Delivered
+-- Only owner, admin, or operations roles may call this function.
 CREATE OR REPLACE FUNCTION public.mark_booking_delivered(p_booking_id UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+  v_role VARCHAR;
 BEGIN
+  v_role := public.get_admin_role();
+  IF v_role NOT IN ('owner', 'admin', 'operations') THEN
+    RAISE EXCEPTION 'Unauthorized: Only admin or operations can mark bookings as delivered.';
+  END IF;
+
   UPDATE public.bookings 
   SET status = 'delivered' 
   WHERE id = p_booking_id AND status = 'locked';
@@ -665,9 +681,17 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function: Mark Booking Missed
+-- Only owner, admin, or operations roles may call this function.
 CREATE OR REPLACE FUNCTION public.mark_booking_missed(p_booking_id UUID)
 RETURNS BOOLEAN AS $$
+DECLARE
+  v_role VARCHAR;
 BEGIN
+  v_role := public.get_admin_role();
+  IF v_role NOT IN ('owner', 'admin', 'operations') THEN
+    RAISE EXCEPTION 'Unauthorized: Only admin or operations can mark bookings as missed.';
+  END IF;
+
   UPDATE public.bookings 
   SET status = 'missed' 
   WHERE id = p_booking_id AND status = 'locked';

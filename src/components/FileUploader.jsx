@@ -14,12 +14,38 @@ export const FileUploader = ({
 }) => {
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
+  const [localError, setLocalError] = useState('');
   const [previewUrl, setPreviewUrl] = useState(
     typeof value === 'string' ? value : value ? URL.createObjectURL(value) : ''
   );
 
   const handleFile = (file) => {
     if (!file) return;
+    setLocalError('');
+
+    // 5MB Size Limit
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setLocalError('File size exceeds the 5MB limit. Please upload a smaller image.');
+      onChange(null);
+      setPreviewUrl('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Format Restrictions: JPG, JPEG, PNG, WEBP
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExt)) {
+      setLocalError('Only JPG, JPEG, PNG, and WEBP image files are allowed.');
+      onChange(null);
+      setPreviewUrl('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     onChange(file);
     setPreviewUrl(URL.createObjectURL(file));
   };
@@ -53,6 +79,7 @@ export const FileUploader = ({
     e.stopPropagation();
     onChange(null);
     setPreviewUrl('');
+    setLocalError('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -193,7 +220,7 @@ export const FileUploader = ({
         )}
       </div>
 
-      {error && (
+      {(localError || error) && (
         <span
           style={{
             fontSize: '0.78rem',
@@ -202,7 +229,7 @@ export const FileUploader = ({
             display: 'block'
           }}
         >
-          {error}
+          {localError || error}
         </span>
       )}
     </div>
