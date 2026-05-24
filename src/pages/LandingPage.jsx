@@ -284,27 +284,153 @@ export const LandingPage = () => {
           </p>
         </div>
 
-        <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-          <Card hoverable={true} className="animate-slide-up delay-100" title="1. Select Package" subtitle="Flexible options to match your shifts.">
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Choose from a launch Trial Drop (1 meal) or subscription credit packs (3, 8, or 16 meals per month). No long-term commitments.
-            </p>
-          </Card>
-          <Card hoverable={true} className="animate-slide-up delay-200" title="2. Schedule Dates & Shifts" subtitle="Dynamic calendar allocations.">
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Assign credits to the Day Drop (12:30 PM - 2:00 PM) or Night Drop (10:30 PM - 12:00 AM) window based on your rostered shifts.
-            </p>
-          </Card>
-          <Card hoverable={true} className="animate-slide-up delay-300" title="3. Manual Receipt Upload" subtitle="Direct bank transfer approvals.">
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Transfer funds via Raast, EasyPaisa, or JazzCash and upload the screenshot. Admin approves payments to activate credits.
-            </p>
-          </Card>
-          <Card hoverable={true} className="animate-slide-up delay-400" title="4. Desk Drop-off" subtitle="Lobby desk collection.">
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-              Meals are dropped at the designated lobby desk. You receive a notification to retrieve your hot meal.
-            </p>
-          </Card>
+        <div style={{ position: 'relative', maxWidth: '800px', margin: '0 auto' }}>
+          {/* Glowing Line */}
+          <div style={{
+            position: 'absolute',
+            left: '23px', // centers behind the 48px circles
+            top: '24px',
+            bottom: '24px',
+            width: '2px',
+            background: 'linear-gradient(to bottom, var(--primary) 0%, #8b5cf6 33%, var(--accent) 66%, var(--success) 100%)',
+            opacity: 0.4,
+            borderRadius: '2px'
+          }}></div>
+
+          {[
+            {
+              num: 1,
+              title: "Select Package",
+              desc: "Choose from a launch Trial Drop (1 meal) or subscription credit packs (3, 8, or 16 meals per month). Flexible options, no long-term commitments.",
+              color: "var(--primary)",
+              colorHex: "99, 102, 241",
+              icon: <path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15zM5 15.91l6 3.38v-6.71L5 9.21v6.7zm14 0v-6.7l-6 3.38v6.71l6-3.39z"/>
+            },
+            {
+              num: 2,
+              title: "Schedule Dates & Shifts",
+              desc: "Assign credits to the Day Drop (12:30 PM - 2:00 PM) or Night Drop (10:30 PM - 12:00 AM) window based on your rostered shifts. Dynamic calendar allocations.",
+              color: "#8b5cf6",
+              colorHex: "139, 92, 246",
+              icon: <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
+            },
+            {
+              num: 3,
+              title: "Manual Receipt Upload",
+              desc: "Transfer funds via Raast, EasyPaisa, or JazzCash and upload the screenshot. Admin approves payments to activate credits quickly.",
+              color: "var(--accent)",
+              colorHex: "245, 158, 11",
+              icon: <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+            },
+            {
+              num: 4,
+              title: "Desk Drop-off",
+              desc: "Meals are dropped at the designated lobby desk. You receive a notification to retrieve your hot meal when it arrives.",
+              color: "var(--success)",
+              colorHex: "34, 197, 94",
+              icon: <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+            }
+          ].map((step, i) => (
+            <div key={i} className={`animate-slide-up delay-${(i + 1) * 100}`} style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '32px',
+              marginBottom: i !== 3 ? '40px' : '0',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              {/* Number Circle Node */}
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: `rgba(${step.colorHex}, 0.15)`,
+                border: `2px solid ${step.color}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: step.color,
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.2rem',
+                fontWeight: 800,
+                boxShadow: `0 0 20px rgba(${step.colorHex}, 0.4)`,
+                flexShrink: 0,
+                position: 'relative',
+                backdropFilter: 'blur(4px)'
+              }}>
+                {step.num}
+              </div>
+
+              {/* Content Card */}
+              <div className="glass-card u-hover-lift" style={{
+                flex: 1,
+                padding: '28px 32px',
+                borderRadius: 'var(--radius-lg)',
+                border: `1px solid rgba(${step.colorHex}, 0.2)`,
+                background: 'linear-gradient(145deg, rgba(18, 20, 26, 0.8) 0%, rgba(18, 20, 26, 0.4) 100%)',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = `0 10px 40px rgba(${step.colorHex}, 0.15)`;
+                e.currentTarget.style.borderColor = `rgba(${step.colorHex}, 0.5)`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = `rgba(${step.colorHex}, 0.2)`;
+              }}
+              >
+                {/* Subtle background glow */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-50px',
+                  right: '-50px',
+                  width: '150px',
+                  height: '150px',
+                  background: `radial-gradient(circle, rgba(${step.colorHex}, 0.15) 0%, transparent 70%)`,
+                  borderRadius: '50%',
+                  pointerEvents: 'none'
+                }}></div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    background: `rgba(${step.colorHex}, 0.1)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: step.color
+                  }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      {step.icon}
+                    </svg>
+                  </div>
+                  <h3 style={{
+                    fontSize: '1.35rem',
+                    fontWeight: 700,
+                    fontFamily: 'var(--font-display)',
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.01em',
+                    margin: 0
+                  }}>
+                    {step.title}
+                  </h3>
+                </div>
+                <p style={{
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.98rem',
+                  lineHeight: '1.6',
+                  margin: 0,
+                  paddingLeft: '60px'
+                }}>
+                  {step.desc}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
