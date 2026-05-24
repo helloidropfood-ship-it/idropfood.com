@@ -11,6 +11,7 @@ import Operations from './pages/admin/Operations';
 import Schedule from './pages/admin/Schedule';
 import Menu from './pages/admin/Menu';
 import Plans from './pages/admin/Plans';
+import Roles from './pages/admin/Roles';
 import Settings from './pages/admin/Settings';
 
 function App() {
@@ -73,6 +74,14 @@ function App() {
             element={
               <AdminLayout>
                 <Plans />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/roles"
+            element={
+              <AdminLayout>
+                <Roles />
               </AdminLayout>
             }
           />

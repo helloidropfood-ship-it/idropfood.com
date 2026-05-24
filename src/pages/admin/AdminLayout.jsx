@@ -23,6 +23,7 @@ export const AdminLayout = ({ children }) => {
       { path: '/admin/schedule', roles: ['owner', 'admin'] },
       { path: '/admin/menu', roles: ['owner', 'admin'] },
       { path: '/admin/plans', roles: ['owner'] },
+      { path: '/admin/roles', roles: ['owner'] },
       { path: '/admin/settings', roles: ['owner', 'admin'] }
     ];
 
@@ -47,6 +48,7 @@ export const AdminLayout = ({ children }) => {
     { path: '/admin/schedule', label: 'Drop Windows', icon: '📅', roles: ['owner', 'admin'] },
     { path: '/admin/menu', label: 'Menu Allocations', icon: '🍳', roles: ['owner', 'admin'] },
     { path: '/admin/plans', label: 'Package pricing', icon: '🏷️', roles: ['owner'] },
+    { path: '/admin/roles', label: 'Roles & Team', icon: '👥', roles: ['owner'] },
     { path: '/admin/settings', label: 'System Settings', icon: '⚙️', roles: ['owner', 'admin'] }
   ];
 
