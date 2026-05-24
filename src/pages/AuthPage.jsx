@@ -81,7 +81,12 @@ export const AuthPage = () => {
       await sendMagicLink(email);
       setIsEmailSent(true);
     } catch (err) {
-      setError(err.message || 'Failed to send magic link. Please try again.');
+      console.error('Magic Link Error:', err);
+      let errorMsg = err.message || 'Failed to send magic link. Please try again.';
+      if (errorMsg === '{}') {
+        errorMsg = 'SMTP Error: Failed to send email. Check your Supabase Resend settings (e.g. unverified domain or invalid API key).';
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
