@@ -303,6 +303,16 @@ export const SupabaseDataProvider = ({ children }) => {
     if (error) throw error;
   };
 
+  const signInWithOAuth = async (provider) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin + '/auth'
+      }
+    });
+    if (error) throw error;
+  };
+
   const completeProfile = async ({ name, phone, floor, department, delivery_notes }) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) throw new Error('No active auth session found.');
@@ -784,6 +794,7 @@ export const SupabaseDataProvider = ({ children }) => {
         paymentSettings,
         loading,
         sendMagicLink,
+        signInWithOAuth,
         completeProfile,
         logoutCustomer,
         loginAdmin,

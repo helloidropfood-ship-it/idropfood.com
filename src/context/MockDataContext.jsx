@@ -642,6 +642,7 @@ export const MockDataProvider = ({ children }) => {
         menuItems,
         bookings,
         paymentSettings,
+        signInWithOAuth: async () => { console.log('Mock: signInWithOAuth called'); },
         loginCustomer,
         logoutCustomer,
         loginAdmin,
