@@ -33,6 +33,24 @@ export const AuthPage = () => {
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
 
+  // Handle Auth Errors from URL
+  useEffect(() => {
+    let errorDesc = null;
+    if (location.hash.includes('error_description')) {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      errorDesc = hashParams.get('error_description');
+    } else if (location.search.includes('error_description')) {
+      const searchParams = new URLSearchParams(location.search);
+      errorDesc = searchParams.get('error_description');
+    }
+
+    if (errorDesc) {
+      setError(decodeURIComponent(errorDesc).replace(/\+/g, ' '));
+      setIsEmailSent(false);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
   // Redirect if logged in and profile is complete
   useEffect(() => {
     if (currentUser && !currentUser.needsProfile) {

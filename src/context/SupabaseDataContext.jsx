@@ -224,8 +224,7 @@ export const SupabaseDataProvider = ({ children }) => {
   useEffect(() => {
     fetchPublicCatalogs();
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const handleSession = async (session) => {
       setLoading(true);
       if (session?.user) {
         // Query public.admin_users profile first to identify admin session
@@ -276,6 +275,16 @@ export const SupabaseDataProvider = ({ children }) => {
         setBookings([]);
       }
       setLoading(false);
+    };
+
+    // First fetch the current session just in case the listener misses the initial state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
+    });
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      handleSession(session);
     });
 
     return () => {
