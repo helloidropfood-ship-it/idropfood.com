@@ -746,10 +746,6 @@ export const LandingPage = () => {
               © 2026 iDropFood. All rights reserved. Launching first at Shahrah-e-Faisal.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '20px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/auth')}>Admin Dashboard</span>
-            <span>English Only</span>
-          </div>
         </div>
       </footer>
     </div>

@@ -328,19 +328,56 @@ export const AuthPage = () => {
         gap: '24px'
       }}
     >
+      {/* Return to Main Page Link */}
+      <div 
+        onClick={() => navigate('/')}
+        style={{
+          position: 'absolute',
+          top: '24px',
+          left: '24px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          color: 'var(--text-secondary)',
+          fontSize: '0.9rem',
+          fontWeight: 500,
+          transition: 'color var(--transition-fast)'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Return to Home
+      </div>
+
       {/* Brand Header */}
-      <div style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '1.8rem',
-            fontWeight: 800,
-            letterSpacing: '-0.02em'
-          }}
-        >
-          iDrop<span style={{ color: 'var(--accent)' }}>Food</span>
-        </span>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+      <div style={{ textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={() => navigate('/')}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3))' }}>
+            <defs>
+              <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#f59e0b" />
+              </linearGradient>
+            </defs>
+            <path d="M16 2C9.37 8.63 6 13.5 6 18C6 23.52 10.48 28 16 28C21.52 28 26 23.52 26 18C26 13.5 22.63 8.63 16 2ZM16 22C13.79 22 12 20.21 12 18C12 16.2 13.5 13.8 16 10.6C18.5 13.8 20 16.2 20 18C20 20.21 18.21 22 16 22Z" fill="url(#logo-grad)" />
+          </svg>
+          <span
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.8rem',
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              color: 'var(--text-primary)'
+            }}
+          >
+            iDrop<span style={{ fontWeight: 300, color: 'var(--text-secondary)' }}>Food</span><span style={{ color: 'var(--accent)' }}>.</span>
+          </span>
+        </div>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '8px' }}>
           Your Shift. Your Meal Drop.
         </p>
       </div>
