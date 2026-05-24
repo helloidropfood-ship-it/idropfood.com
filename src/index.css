@@ -436,3 +436,24 @@ a {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
+/* Responsive Admin Layout */
+@media (max-width: 768px) {
+  .admin-shell {
+    flex-direction: column !important;
+  }
+  
+  .admin-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .admin-main {
+    padding: 20px !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}
+

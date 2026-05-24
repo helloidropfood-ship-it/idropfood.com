@@ -59,13 +59,15 @@ export const AdminLayout = ({ children }) => {
         className="admin-sidebar"
         style={{
           width: '280px',
+          flexShrink: 0,
           borderRight: '1px solid var(--border-color)',
           background: 'var(--bg-surface-solid)',
           display: 'flex',
           flexDirection: 'column',
           position: 'sticky',
           top: 0,
-          height: '100vh'
+          height: '100dvh',
+          zIndex: 10
         }}
       >
         {/* Brand Header */}
