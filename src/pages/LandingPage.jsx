@@ -501,8 +501,8 @@ export const LandingPage = () => {
                       <div
                         style={{
                           position: 'absolute',
-                          top: '-12px',
-                          right: '20px',
+                          top: '12px',
+                          right: '12px',
                           background: 'var(--primary)',
                           color: 'white',
                           fontSize: '0.68rem',
