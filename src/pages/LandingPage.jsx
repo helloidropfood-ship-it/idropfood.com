@@ -7,7 +7,7 @@ import Badge from '../components/Badge';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
-  const { plans, dropWindows, menuItems, paymentSettings } = useMockData();
+  const { plans, dropWindows, menuItems, paymentSettings, fixedDropWindows = [] } = useMockData();
 
   // Get active plans
   const activePlans = plans.filter(p => p.active);
@@ -455,45 +455,29 @@ export const LandingPage = () => {
           </div>
 
           <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
-            {/* Day Drop */}
-            <div
-              className="glass-card animate-slide-up delay-100"
-              style={{
-                padding: '32px',
-                textAlign: 'center'
-              }}
-            >
-              <Badge variant="primary" style={{ marginBottom: '16px' }}>Morning & Afternoon Shifts</Badge>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
-                Day Drop
-              </h3>
-              <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.2rem', marginBottom: '16px', fontFamily: 'var(--font-display)' }}>
-                12:30 PM – 2:00 PM
-              </p>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                Cutoff locks at 8:00 PM the previous day. Perfect lunch drop-off for standard day shifts, operations leads, and management.
-              </p>
-            </div>
-
-            {/* Night Drop */}
-            <div
-              className="glass-card animate-slide-up delay-200"
-              style={{
-                padding: '32px',
-                textAlign: 'center'
-              }}
-            >
-              <Badge variant="accent" style={{ marginBottom: '16px' }}>Night & Evening Shifts</Badge>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
-                Night Drop
-              </h3>
-              <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.2rem', marginBottom: '16px', fontFamily: 'var(--font-display)' }}>
-                10:30 PM – 12:00 AM
-              </p>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                Cutoff locks at 8:00 PM the previous day. Tailored for late-night call center squads, BPO agents, and technical support teams.
-              </p>
-            </div>
+            {fixedDropWindows.sort((a,b) => a.display_order - b.display_order).map((fixedWindow, idx) => (
+              <div
+                key={fixedWindow.id}
+                className={`glass-card animate-slide-up delay-${(idx + 1)}00`}
+                style={{
+                  padding: '32px',
+                  textAlign: 'center'
+                }}
+              >
+                <Badge variant={fixedWindow.window_name === 'Day Drop' ? 'primary' : 'accent'} style={{ marginBottom: '16px' }}>
+                  {fixedWindow.subtitle}
+                </Badge>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                  {fixedWindow.window_name}
+                </h3>
+                <p style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.2rem', marginBottom: '16px', fontFamily: 'var(--font-display)' }}>
+                  {fixedWindow.display_time}
+                </p>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  {fixedWindow.description}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

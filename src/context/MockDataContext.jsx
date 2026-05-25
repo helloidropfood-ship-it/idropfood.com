@@ -16,6 +16,7 @@ export const MockDataProvider = ({ children }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [paymentSettings, setPaymentSettings] = useState(null);
+  const [fixedDropWindows, setFixedDropWindows] = useState([]);
 
   // 2. Initial Seeding of Data (Loaded from LocalStorage if exists)
   useEffect(() => {
@@ -148,6 +149,12 @@ export const MockDataProvider = ({ children }) => {
     setPurchases(localGet('purchases', []));
     setPaymentProofs(localGet('paymentProofs', []));
     setBookings(localGet('bookings', []));
+    
+    const defaultFixedWindows = [
+      { id: 'fixed-day', window_name: 'Day Drop', display_time: '12:30 PM – 2:00 PM', subtitle: 'Morning & Afternoon Shifts', description: 'Cutoff locks at 8:00 PM the previous day. Perfect lunch drop-off for standard day shifts, operations leads, and management.', display_order: 1 },
+      { id: 'fixed-night', window_name: 'Night Drop', display_time: '10:30 PM – 12:00 AM', subtitle: 'Night & Midnight Shifts', description: 'Cutoff locks at 8:00 PM the previous day. Hot, fresh dinner delivered right when most cafeterias close down.', display_order: 2 }
+    ];
+    setFixedDropWindows(localGet('fixedDropWindows', defaultFixedWindows));
 
     // Load active sessions
     const savedUser = localStorage.getItem('idrop_session_user');
@@ -402,6 +409,30 @@ export const MockDataProvider = ({ children }) => {
     localSet('purchases', updatedPurchases);
     localSet('paymentProofs', updatedProofs);
     localSet('bookings', updatedBookings);
+  };
+
+  // 10. Fixed Drop Windows Management (For Landing Page Display)
+  const createFixedWindow = (windowData) => {
+    const newWindow = {
+      ...windowData,
+      id: `fixed-${Date.now()}`
+    };
+    const updated = [...fixedDropWindows, newWindow];
+    setFixedDropWindows(updated);
+    localSet('fixedDropWindows', updated);
+    return newWindow;
+  };
+
+  const updateFixedWindow = (id, updates) => {
+    const updated = fixedDropWindows.map(w => w.id === id ? { ...w, ...updates } : w);
+    setFixedDropWindows(updated);
+    localSet('fixedDropWindows', updated);
+  };
+
+  const deleteFixedWindow = (id) => {
+    const updated = fixedDropWindows.filter(w => w.id !== id);
+    setFixedDropWindows(updated);
+    localSet('fixedDropWindows', updated);
   };
 
   // 6. Flexible Scheduling Operations (Customer Side)
@@ -661,7 +692,11 @@ export const MockDataProvider = ({ children }) => {
         assignMenu,
         updatePlans,
         createPlan,
-        updateGlobalSettings
+        updateGlobalSettings,
+        fixedDropWindows,
+        createFixedWindow,
+        updateFixedWindow,
+        deleteFixedWindow
       }}
     >
       {children}

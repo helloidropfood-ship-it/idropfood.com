@@ -21,6 +21,7 @@ export const SupabaseDataProvider = ({ children }) => {
   const [purchases, setPurchases] = useState([]);
   const [paymentProofs, setPaymentProofs] = useState([]);
   const [dropWindows, setDropWindows] = useState([]);
+  const [fixedDropWindows, setFixedDropWindows] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [paymentSettings, setPaymentSettings] = useState(null);
@@ -31,6 +32,28 @@ export const SupabaseDataProvider = ({ children }) => {
     try {
       const todayStr = getLocalDateString();
 
+      // Fetch drop windows
+      const { data: dropsData, error: dropsErr } = await supabase
+        .from('drop_windows')
+        .select('*')
+        .gte('date', todayStr)
+        .order('date', { ascending: true });
+      if (dropsErr) throw dropsErr;
+      setDropWindows(dropsData || []);
+
+      // Fetch fixed drop windows templates
+      const { data: fixedWindowsData, error: fixedWindowsErr } = await supabase
+        .from('fixed_drop_windows')
+        .select('*')
+        .order('display_order', { ascending: true });
+      
+      if (fixedWindowsErr) {
+        console.warn('Error fetching fixed_drop_windows, falling back to empty array', fixedWindowsErr);
+        setFixedDropWindows([]);
+      } else {
+        setFixedDropWindows(fixedWindowsData || []);
+      }
+
       // Fetch active plans
       const { data: planData, error: planErr } = await supabase
         .from('plans')
@@ -39,17 +62,6 @@ export const SupabaseDataProvider = ({ children }) => {
         .order('display_order', { ascending: true });
       if (planErr) throw planErr;
       setPlans(planData || []);
-
-      // Fetch active drop windows starting from today
-      const { data: windowData, error: windowErr } = await supabase
-        .from('drop_windows')
-        .select('*')
-        .eq('active', true)
-        .gte('date', todayStr)
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true });
-      if (windowErr) throw windowErr;
-      setDropWindows(windowData || []);
 
       // Fetch active menu items
       const { data: menuData, error: menuErr } = await supabase
@@ -776,6 +788,26 @@ export const SupabaseDataProvider = ({ children }) => {
     }
   };
 
+  // 9. Fixed Drop Windows
+  const createFixedWindow = async (windowData) => {
+    const { data, error } = await supabase.from('fixed_drop_windows').insert([windowData]).select().single();
+    if (error) throw error;
+    setFixedDropWindows([...fixedDropWindows, data]);
+    return data;
+  };
+
+  const updateFixedWindow = async (id, updates) => {
+    const { error } = await supabase.from('fixed_drop_windows').update(updates).eq('id', id);
+    if (error) throw error;
+    setFixedDropWindows(fixedDropWindows.map(w => w.id === id ? { ...w, ...updates } : w));
+  };
+
+  const deleteFixedWindow = async (id) => {
+    const { error } = await supabase.from('fixed_drop_windows').delete().eq('id', id);
+    if (error) throw error;
+    setFixedDropWindows(fixedDropWindows.filter(w => w.id !== id));
+  };
+
   // Return provider wrapped around AppDataContext
   return (
     <AppDataContext.Provider
@@ -813,7 +845,11 @@ export const SupabaseDataProvider = ({ children }) => {
         assignMenu,
         createPlan,
         updatePlans,
-        updateGlobalSettings
+        updateGlobalSettings,
+        fixedDropWindows,
+        createFixedWindow,
+        updateFixedWindow,
+        deleteFixedWindow
       }}
     >
       {children}
