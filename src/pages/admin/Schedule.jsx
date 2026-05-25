@@ -35,6 +35,9 @@ export const Schedule = () => {
     display_order: 1
   });
 
+  // Calendar Modal State
+  const [selectedDateObj, setSelectedDateObj] = useState(null);
+
   // Calendar Helpers
   const today = new Date();
   const currentMonth = today.getMonth();
@@ -139,6 +142,7 @@ export const Schedule = () => {
             return (
               <div 
                 key={dateStr}
+                onClick={() => setSelectedDateObj(dateObj)}
                 style={{
                   minHeight: '100px',
                   background: isToday ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.02)',
@@ -147,7 +151,15 @@ export const Schedule = () => {
                   padding: '8px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '4px'
+                  gap: '4px',
+                  cursor: 'pointer',
+                  transition: 'background var(--transition-fast)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
                 }}
               >
                 <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isToday ? 'var(--primary)' : 'var(--text-secondary)' }}>
@@ -181,69 +193,71 @@ export const Schedule = () => {
     );
   };
 
+  const renderDropCard = (win) => {
+    const cutoffDate = new Date(win.cutoff_time);
+    return (
+      <div key={win.id} style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              {new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </span>
+            <Badge variant={win.window_name === 'Day Drop' ? 'primary' : 'accent'} outline>{win.window_name}</Badge>
+            {!win.active && <Badge variant="secondary">Disabled</Badge>}
+          </div>
+          
+          <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+            <span>⏰ Duration: <strong>{win.start_time.substring(0, 5)} - {win.end_time.substring(0, 5)}</strong></span>
+            <span>👥 Booked: <strong>{win.booked_count} / {win.capacity}</strong> slots</span>
+          </div>
+
+          <div style={{ marginTop: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            🛑 Cutoff locking time: <strong>{cutoffDate.toLocaleString()}</strong>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+          <FormInput
+            label="Slot Status"
+            name="status"
+            type="select"
+            value={win.status}
+            onChange={(e) => updateDropWindow(win.id, { status: e.target.value })}
+            options={[
+              { value: 'open', label: 'Open' },
+              { value: 'locked', label: 'Locked' },
+              { value: 'full', label: 'Full' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'hidden', label: 'Hidden' },
+              { value: 'cancelled', label: 'Cancelled' }
+            ]}
+            style={{ margin: 0, padding: '8px 12px', fontSize: '0.8rem' }}
+          />
+
+          <button
+            onClick={() => updateDropWindow(win.id, { active: !win.active })}
+            style={{
+              background: win.active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              border: `1px solid ${win.active ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+              color: win.active ? 'var(--success)' : 'var(--error)',
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              height: '38px'
+            }}
+          >
+            {win.active ? 'Disable' : 'Enable'}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderUpcomingList = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {[...dropWindows].sort((a,b) => new Date(a.date) - new Date(b.date)).map(win => {
-        const cutoffDate = new Date(win.cutoff_time);
-        return (
-          <div key={win.id} style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                </span>
-                <Badge variant={win.window_name === 'Day Drop' ? 'primary' : 'accent'} outline>{win.window_name}</Badge>
-                {!win.active && <Badge variant="secondary">Disabled</Badge>}
-              </div>
-              
-              <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                <span>⏰ Duration: <strong>{win.start_time.substring(0, 5)} - {win.end_time.substring(0, 5)}</strong></span>
-                <span>👥 Booked: <strong>{win.booked_count} / {win.capacity}</strong> slots</span>
-              </div>
-
-              <div style={{ marginTop: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                🛑 Cutoff locking time: <strong>{cutoffDate.toLocaleString()}</strong>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
-              <FormInput
-                label="Slot Status"
-                name="status"
-                type="select"
-                value={win.status}
-                onChange={(e) => updateDropWindow(win.id, { status: e.target.value })}
-                options={[
-                  { value: 'open', label: 'Open' },
-                  { value: 'locked', label: 'Locked' },
-                  { value: 'full', label: 'Full' },
-                  { value: 'completed', label: 'Completed' },
-                  { value: 'hidden', label: 'Hidden' },
-                  { value: 'cancelled', label: 'Cancelled' }
-                ]}
-                style={{ margin: 0, padding: '8px 12px', fontSize: '0.8rem' }}
-              />
-
-              <button
-                onClick={() => updateDropWindow(win.id, { active: !win.active })}
-                style={{
-                  background: win.active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  border: `1px solid ${win.active ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-                  color: win.active ? 'var(--success)' : 'var(--error)',
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  height: '38px'
-                }}
-              >
-                {win.active ? 'Disable' : 'Enable'}
-              </button>
-            </div>
-          </div>
-        );
-      })}
+      {[...dropWindows].sort((a,b) => new Date(a.date) - new Date(b.date)).map(win => renderDropCard(win))}
     </div>
   );
 
@@ -365,6 +379,31 @@ export const Schedule = () => {
                 <Button type="submit" variant="accent">Save Template</Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Date Details Modal */}
+      {selectedDateObj && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(3, 4, 6, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setSelectedDateObj(null)}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '800px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700 }}>Drops for {selectedDateObj.toLocaleDateString()}</h3>
+              <Button variant="secondary" onClick={() => setSelectedDateObj(null)}>Close</Button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {(() => {
+                const dateStr = selectedDateObj.toISOString().split('T')[0];
+                const dayDrops = dropWindows.filter(w => w.date === dateStr);
+                
+                if (dayDrops.length === 0) {
+                  return <p style={{ color: 'var(--text-muted)' }}>No drop windows scheduled for this date.</p>;
+                }
+                
+                return dayDrops.map(win => renderDropCard(win));
+              })()}
+            </div>
           </div>
         </div>
       )}
