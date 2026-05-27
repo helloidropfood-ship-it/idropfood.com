@@ -9,7 +9,8 @@ export const Schedule = () => {
   const { 
     dropWindows, createDropWindow, updateDropWindow, deleteDropWindow,
     createDropWindowsBatch, deleteDropWindowsBatch, updateDropWindowsBatch,
-    fixedDropWindows, createFixedWindow, updateFixedWindow, deleteFixedWindow 
+    fixedDropWindows, createFixedWindow, updateFixedWindow, deleteFixedWindow,
+    mealTemplates, assignMenu
   } = useMockData();
 
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'templates'
@@ -35,9 +36,8 @@ export const Schedule = () => {
   const [selectedMealId, setSelectedMealId] = useState('');
   const [error, setError] = useState('');
 
-  // Extract unique meals for the dropdown
-  const { menuItems } = useMockData();
-  const uniqueMeals = Array.from(new Map((menuItems || []).map(m => [m.meal_name, m])).values());
+  // We now use mealTemplates directly from context instead of extracting unique meals
+  const uniqueMeals = mealTemplates || [];
 
   // Fixed Templates State
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);

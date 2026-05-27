@@ -18,6 +18,7 @@ export const MockDataProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]);
   const [paymentSettings, setPaymentSettings] = useState(null);
   const [fixedDropWindows, setFixedDropWindows] = useState([]);
+  const [mealTemplates, setMealTemplates] = useState([]);
 
   // 2. Initial Seeding of Data (Loaded from LocalStorage if exists)
   useEffect(() => {
@@ -157,6 +158,17 @@ export const MockDataProvider = ({ children }) => {
       { id: 'fixed-night', window_name: 'Night Drop', display_time: '10:30 PM – 12:00 AM', subtitle: 'Night & Midnight Shifts', description: 'Cutoff locks at 8:00 PM the previous day. Hot, fresh dinner delivered right when most cafeterias close down.', display_order: 2 }
     ];
     setFixedDropWindows(localGet('fixedDropWindows', defaultFixedWindows));
+
+    const defaultMealTemplates = dishes.map((dish, i) => ({
+      id: `meal-temp-${i}`,
+      meal_name: dish.name,
+      description: dish.desc,
+      allergens: dish.allergens,
+      image_url: `https://images.unsplash.com/photo-${1546069901 + i}?w=400&auto=format&fit=crop&q=80`,
+      active: true,
+      created_at: new Date().toISOString()
+    }));
+    setMealTemplates(localGet('mealTemplates', defaultMealTemplates));
 
     // Load active sessions
     const savedUser = localStorage.getItem('idrop_session_user');
@@ -435,6 +447,31 @@ export const MockDataProvider = ({ children }) => {
     const updated = fixedDropWindows.filter(w => w.id !== id);
     setFixedDropWindows(updated);
     localSet('fixedDropWindows', updated);
+  };
+
+  // 12. Meal Templates Management
+  const createMealTemplate = (templateData) => {
+    const newTemplate = {
+      ...templateData,
+      id: `meal-temp-${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    const updated = [...mealTemplates, newTemplate];
+    setMealTemplates(updated);
+    localSet('mealTemplates', updated);
+    return newTemplate;
+  };
+
+  const updateMealTemplate = (id, updates) => {
+    const updated = mealTemplates.map(t => t.id === id ? { ...t, ...updates } : t);
+    setMealTemplates(updated);
+    localSet('mealTemplates', updated);
+  };
+
+  const deleteMealTemplate = (id) => {
+    const updated = mealTemplates.filter(t => t.id !== id);
+    setMealTemplates(updated);
+    localSet('mealTemplates', updated);
   };
 
   // 6. Flexible Scheduling Operations (Customer Side)
@@ -756,7 +793,11 @@ export const MockDataProvider = ({ children }) => {
         fixedDropWindows,
         createFixedWindow,
         updateFixedWindow,
-        deleteFixedWindow
+        deleteFixedWindow,
+        mealTemplates,
+        createMealTemplate,
+        updateMealTemplate,
+        deleteMealTemplate
       }}
     >
       {children}

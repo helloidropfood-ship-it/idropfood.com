@@ -23,6 +23,7 @@ export const SupabaseDataProvider = ({ children }) => {
   const [aiVerifications, setAiVerifications] = useState([]);
   const [dropWindows, setDropWindows] = useState([]);
   const [fixedDropWindows, setFixedDropWindows] = useState([]);
+  const [mealTemplates, setMealTemplates] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [paymentSettings, setPaymentSettings] = useState(null);
@@ -53,6 +54,19 @@ export const SupabaseDataProvider = ({ children }) => {
         setFixedDropWindows([]);
       } else {
         setFixedDropWindows(fixedWindowsData || []);
+      }
+
+      // Fetch meal templates
+      const { data: templatesData, error: templatesErr } = await supabase
+        .from('meal_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (templatesErr) {
+        console.warn('Error fetching meal_templates, falling back to empty array', templatesErr);
+        setMealTemplates([]);
+      } else {
+        setMealTemplates(templatesData || []);
       }
 
       // Fetch active plans
@@ -917,6 +931,26 @@ export const SupabaseDataProvider = ({ children }) => {
     setFixedDropWindows(fixedDropWindows.filter(w => w.id !== id));
   };
 
+  // 10. Meal Templates
+  const createMealTemplate = async (templateData) => {
+    const { data, error } = await supabase.from('meal_templates').insert([templateData]).select().single();
+    if (error) throw error;
+    setMealTemplates([data, ...mealTemplates]);
+    return data;
+  };
+
+  const updateMealTemplate = async (id, updates) => {
+    const { error } = await supabase.from('meal_templates').update(updates).eq('id', id);
+    if (error) throw error;
+    setMealTemplates(mealTemplates.map(t => t.id === id ? { ...t, ...updates } : t));
+  };
+
+  const deleteMealTemplate = async (id) => {
+    const { error } = await supabase.from('meal_templates').delete().eq('id', id);
+    if (error) throw error;
+    setMealTemplates(mealTemplates.filter(t => t.id !== id));
+  };
+
   // Return provider wrapped around AppDataContext
   return (
     <AppDataContext.Provider
@@ -963,7 +997,11 @@ export const SupabaseDataProvider = ({ children }) => {
         fixedDropWindows,
         createFixedWindow,
         updateFixedWindow,
-        deleteFixedWindow
+        deleteFixedWindow,
+        mealTemplates,
+        createMealTemplate,
+        updateMealTemplate,
+        deleteMealTemplate
       }}
     >
       {children}
