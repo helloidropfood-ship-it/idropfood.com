@@ -703,7 +703,9 @@ export const SupabaseDataProvider = ({ children }) => {
   };
 
   const deleteDropWindow = async (winId) => {
-    // First remove associated menu items if cascade is not enabled
+    // Remove associated bookings first to prevent foreign key errors
+    await supabase.from('bookings').delete().eq('drop_window_id', winId);
+    // Remove associated menu items
     await supabase.from('menu_items').delete().eq('drop_window_id', winId);
     
     const { error } = await supabase
@@ -735,7 +737,9 @@ export const SupabaseDataProvider = ({ children }) => {
   const deleteDropWindowsBatch = async (winIds) => {
     if (!winIds || winIds.length === 0) return;
     
-    // First remove associated menu items if cascade is not enabled
+    // Remove associated bookings first to prevent foreign key errors
+    await supabase.from('bookings').delete().in('drop_window_id', winIds);
+    // Remove associated menu items
     await supabase.from('menu_items').delete().in('drop_window_id', winIds);
     
     const { error } = await supabase
