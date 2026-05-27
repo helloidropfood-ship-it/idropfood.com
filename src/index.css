@@ -460,6 +460,23 @@ a {
     max-height: none !important;
     overflow-y: visible !important;
   }
+
+  /* Customer Dashboard Reordering on Mobile */
+  .dash-main.u-grid {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .dash-left-col, .dash-right-col {
+    display: contents !important;
+  }
+
+  .dash-item-success { order: 1; }
+  .dash-item-balance { order: 2; }
+  .dash-right-col > div { order: 3; } /* Calendar block wraps it, but since it's display:contents, we assign order to its children */
+  .dash-item-packages { order: 4; }
+  .dash-item-upcoming { order: 5; }
+  .dash-item-history { order: 6; }
 }
 
 /* Weekly Menu Gallery Styles */

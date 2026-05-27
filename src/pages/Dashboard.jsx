@@ -317,9 +317,10 @@ export const Dashboard = () => {
         }}
       >
         {/* Left Column: Credits Balance & Package Purchase */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <div className="dash-left-col" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
           {successMessage && (
             <div
+              className="dash-item-success"
               style={{
                 background: 'var(--success-glow)',
                 border: '1px solid rgba(16, 185, 129, 0.2)',
@@ -337,216 +338,224 @@ export const Dashboard = () => {
           )}
 
           {/* Credits Balance Card */}
-          <Card hoverable={false} className="animate-slide-up delay-100">
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                Available Meal Balance
-              </p>
-              <h2
-                className="dash-credits-value"
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '3.5rem',
-                  fontWeight: 800,
-                  margin: '8px 0',
-                  color: activeCredits > 0 ? 'var(--accent)' : 'var(--text-muted)'
-                }}
-              >
-                {activeCredits} <span style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Credits</span>
-              </h2>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                1 credit = 1 meal drop. Schedule anytime prior to the window's cutoff.
-              </p>
-            </div>
-          </Card>
+          <div className="dash-item-balance">
+            <Card hoverable={false} className="animate-slide-up delay-100">
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                  Available Meal Balance
+                </p>
+                <h2
+                  className="dash-credits-value"
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '3.5rem',
+                    fontWeight: 800,
+                    margin: '8px 0',
+                    color: activeCredits > 0 ? 'var(--accent)' : 'var(--text-muted)'
+                  }}
+                >
+                  {activeCredits} <span style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Credits</span>
+                </h2>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  1 credit = 1 meal drop. Schedule anytime prior to the window's cutoff.
+                </p>
+              </div>
+            </Card>
+          </div>
 
           {/* Packages Purchase Options */}
-          <Card title="Acquire Meal Credits" subtitle="Select a bundle to top up your meal balance instantly." className="animate-slide-up delay-200">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {plans
-                .filter(p => p.active)
-                .sort((a,b) => a.display_order - b.display_order)
-                .map(plan => (
-                  <div
-                    key={plan.id}
-                    className="dash-plan-row"
-                    style={{
-                      border: '1px solid var(--border-color)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: 'rgba(255,255,255,0.01)'
-                    }}
-                  >
-                    <div>
-                      <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {plan.name} <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>({plan.meal_credits} Credits)</span>
-                      </h4>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        Rs. {plan.price.toLocaleString()} • {plan.validity_days} Days Expiry
-                      </p>
-                    </div>
-                    <Button variant="secondary" onClick={() => handleOpenCheckout(plan)} size="sm">
-                      Select
-                    </Button>
-                  </div>
-                ))}
-            </div>
-          </Card>
-
-          {/* Active Bookings list */}
-          <Card title="Upcoming Scheduled Drops" subtitle="Your locked and upcoming active drop-offs." className="animate-slide-up delay-300">
-            {activeReservations.length === 0 ? (
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '16px 0' }}>
-                No active reservations. Schedule your drop dates using the calendar on the right.
-              </p>
-            ) : (
+          <div className="dash-item-packages">
+            <Card title="Acquire Meal Credits" subtitle="Select a bundle to top up your meal balance instantly." className="animate-slide-up delay-200">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {activeReservations.map(book => {
-                  const win = dropWindows.find(w => w.id === book.drop_window_id);
-                  const menu = menuItems.find(m => m.id === book.menu_item_id);
-                  const isPastCutoff = win ? new Date() > new Date(win.cutoff_time) : true;
-                  const isCancelable = book.status === 'scheduled' && !isPastCutoff;
-
-                  return (
+                {plans
+                  .filter(p => p.active)
+                  .sort((a,b) => a.display_order - b.display_order)
+                  .map(plan => (
                     <div
-                      key={book.id}
+                      key={plan.id}
+                      className="dash-plan-row"
                       style={{
                         border: '1px solid var(--border-color)',
                         borderRadius: 'var(--radius-md)',
-                        padding: '14px',
-                        background: 'rgba(255, 255, 255, 0.01)',
+                        padding: '16px',
                         display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: 'rgba(255,255,255,0.01)'
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)' }}>
-                          {win ? new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
-                        </span>
-                        <StatusPill status={isPastCutoff ? 'locked' : book.status} />
+                      <div>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {plan.name} <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>({plan.meal_credits} Credits)</span>
+                        </h4>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          Rs. {plan.price.toLocaleString()} • {plan.validity_days} Days Expiry
+                        </p>
                       </div>
-                      
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <h5 style={{ fontSize: '0.9rem', fontWeight: 600 }}>{menu ? menu.meal_name : 'Meal'}</h5>
-                          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                            {win ? `${win.window_name} (${win.start_time.substring(0, 5)} - ${win.end_time.substring(0, 5)})` : ''}
-                          </span>
-                        </div>
-
-                        {isCancelable && (
-                          <Button variant="danger" onClick={() => handleCancelClick(book.id)} size="sm" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
-                            Cancel
-                          </Button>
-                        )}
-                      </div>
+                      <Button variant="secondary" onClick={() => handleOpenCheckout(plan)} size="sm">
+                        Select
+                      </Button>
                     </div>
-                  );
-                })}
+                  ))}
               </div>
-            )}
-          </Card>
+            </Card>
+          </div>
 
-          {/* Past Drops & Transactions List */}
-          <Card title="Activity History" subtitle="Your transaction history and past drops." hoverable={false} className="animate-slide-up delay-400">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Transactions list */}
-              <div>
-                <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '10px' }}>
-                  Transactions
-                </h4>
-                {userPurchases.length === 0 ? (
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No packages purchased.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {userPurchases.map(pur => {
-                      const plan = plans.find(p => p.id === pur.plan_id);
-                      return (
-                        <div
-                          key={pur.id}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            fontSize: '0.82rem',
-                            paddingBottom: '8px',
-                            borderBottom: '1px dashed var(--border-color)'
-                          }}
-                        >
-                          <div>
-                            <span style={{ fontWeight: 600 }}>{plan ? plan.name : 'Pack'}</span>
-                            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{new Date(pur.created_at).toLocaleDateString()}</p>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <span style={{ fontWeight: 600 }}>Rs. {plan?.price.toLocaleString()}</span>
-                            <div>
-                              <StatusPill status={pur.payment_status} />
-                            </div>
-                            {pur.payment_status === 'pending_payment' && (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenRetryUpload(pur)}
-                                style={{
-                                  background: 'rgba(245, 158, 11, 0.1)',
-                                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                                  color: 'var(--accent)',
-                                  fontSize: '0.72rem',
-                                  padding: '3px 8px',
-                                  borderRadius: 'var(--radius-sm)',
-                                  cursor: 'pointer',
-                                  marginTop: '4px',
-                                  fontWeight: 600,
-                                  display: 'inline-block'
-                                }}
-                              >
-                                Retry Upload
-                              </button>
-                            )}
-                          </div>
+          {/* Active Bookings list */}
+          <div className="dash-item-upcoming">
+            <Card title="Upcoming Scheduled Drops" subtitle="Your locked and upcoming active drop-offs." className="animate-slide-up delay-300">
+              {activeReservations.length === 0 ? (
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '16px 0' }}>
+                  No active reservations. Schedule your drop dates using the calendar on the right.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {activeReservations.map(book => {
+                    const win = dropWindows.find(w => w.id === book.drop_window_id);
+                    const menu = menuItems.find(m => m.id === book.menu_item_id);
+                    const isPastCutoff = win ? new Date() > new Date(win.cutoff_time) : true;
+                    const isCancelable = book.status === 'scheduled' && !isPastCutoff;
+
+                    return (
+                      <div
+                        key={book.id}
+                        style={{
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 'var(--radius-md)',
+                          padding: '14px',
+                          background: 'rgba(255, 255, 255, 0.01)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)' }}>
+                            {win ? new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : ''}
+                          </span>
+                          <StatusPill status={isPastCutoff ? 'locked' : book.status} />
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Past Drops list */}
-              <div>
-                <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '10px' }}>
-                  Past Drops
-                </h4>
-                {pastDrops.length === 0 ? (
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No past drops recorded.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {pastDrops.map(book => {
-                      const win = dropWindows.find(w => w.id === book.drop_window_id);
-                      const menu = menuItems.find(m => m.id === book.menu_item_id);
-                      return (
-                        <div key={book.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
-                            <span style={{ fontWeight: 500 }}>{menu ? menu.meal_name : 'Meal'}</span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', display: 'block' }}>
-                              {win ? `${new Date(win.date).toLocaleDateString()} - ${win.window_name}` : ''}
+                            <h5 style={{ fontSize: '0.9rem', fontWeight: 600 }}>{menu ? menu.meal_name : 'Meal'}</h5>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                              {win ? `${win.window_name} (${win.start_time.substring(0, 5)} - ${win.end_time.substring(0, 5)})` : ''}
                             </span>
                           </div>
-                          <StatusPill status={book.status} />
+
+                          {isCancelable && (
+                            <Button variant="danger" onClick={() => handleCancelClick(book.id)} size="sm" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
+                              Cancel
+                            </Button>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Past Drops & Transactions List */}
+          <div className="dash-item-history">
+            <Card title="Activity History" subtitle="Your transaction history and past drops." hoverable={false} className="animate-slide-up delay-400">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Transactions list */}
+                <div>
+                  <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                    Transactions
+                  </h4>
+                  {userPurchases.length === 0 ? (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No packages purchased.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {userPurchases.map(pur => {
+                        const plan = plans.find(p => p.id === pur.plan_id);
+                        return (
+                          <div
+                            key={pur.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              fontSize: '0.82rem',
+                              paddingBottom: '8px',
+                              borderBottom: '1px dashed var(--border-color)'
+                            }}
+                          >
+                            <div>
+                              <span style={{ fontWeight: 600 }}>{plan ? plan.name : 'Pack'}</span>
+                              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{new Date(pur.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontWeight: 600 }}>Rs. {plan?.price.toLocaleString()}</span>
+                              <div>
+                                <StatusPill status={pur.payment_status} />
+                              </div>
+                              {pur.payment_status === 'pending_payment' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenRetryUpload(pur)}
+                                  style={{
+                                    background: 'rgba(245, 158, 11, 0.1)',
+                                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                                    color: 'var(--accent)',
+                                    fontSize: '0.72rem',
+                                    padding: '3px 8px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    marginTop: '4px',
+                                    fontWeight: 600,
+                                    display: 'inline-block'
+                                  }}
+                                >
+                                  Retry Upload
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Past Drops list */}
+                <div>
+                  <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                    Past Drops
+                  </h4>
+                  {pastDrops.length === 0 ? (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No past drops recorded.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {pastDrops.map(book => {
+                        const win = dropWindows.find(w => w.id === book.drop_window_id);
+                        const menu = menuItems.find(m => m.id === book.menu_item_id);
+                        return (
+                          <div key={book.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
+                            <div>
+                              <span style={{ fontWeight: 500 }}>{menu ? menu.meal_name : 'Meal'}</span>
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', display: 'block' }}>
+                                {win ? `${new Date(win.date).toLocaleDateString()} - ${win.window_name}` : ''}
+                              </span>
+                            </div>
+                            <StatusPill status={book.status} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
 
         {/* Right Column: Weekly Menu Gallery */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }} className="animate-slide-up delay-200">
+        <div className="dash-right-col animate-slide-up delay-200" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
