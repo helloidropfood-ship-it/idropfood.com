@@ -309,8 +309,9 @@ export const Schedule = () => {
             🛑 Cutoff locking time: <strong>{cutoffDate.toLocaleString()}</strong>
           </div>
         </div>
+      </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
           <FormInput
             label="Slot Status"
             name="status"
