@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { encode as encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 // Define strict JSON schema matching the expected prompt output
@@ -56,9 +57,9 @@ serve(async (req: Request) => {
       throw new Error(`Failed to download proof image: ${downloadError?.message}`);
     }
 
-    // Convert Blob to Base64
+    // Convert Blob to Base64 safely
     const arrayBuffer = await fileData.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const base64Image = encodeBase64(arrayBuffer);
 
     // 5. Call Gemini API
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
@@ -87,7 +88,7 @@ Required JSON format:
 ${jsonSchemaText}
 `;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiApiKey}`;
     
     const geminiResponse = await fetch(geminiUrl, {
       method: "POST",
