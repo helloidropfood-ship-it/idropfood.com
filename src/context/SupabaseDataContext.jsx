@@ -20,6 +20,7 @@ export const SupabaseDataProvider = ({ children }) => {
   const [plans, setPlans] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [paymentProofs, setPaymentProofs] = useState([]);
+  const [aiVerifications, setAiVerifications] = useState([]);
   const [dropWindows, setDropWindows] = useState([]);
   const [fixedDropWindows, setFixedDropWindows] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
@@ -220,7 +221,14 @@ export const SupabaseDataProvider = ({ children }) => {
       if (planErr) throw planErr;
       setPlans(planData || []);
 
-      // 9. Fetch admin users (to list or track other administrators)
+      // 9. Fetch AI verifications
+      const { data: aiData, error: aiErr } = await supabase
+        .from('payment_ai_verifications')
+        .select('*');
+      if (aiErr) throw aiErr;
+      setAiVerifications(aiData || []);
+
+      // 10. Fetch admin users (to list or track other administrators)
       const { data: adminUsersData, error: adminUsersErr } = await supabase
         .from('admin_users')
         .select('*');
@@ -299,8 +307,21 @@ export const SupabaseDataProvider = ({ children }) => {
       handleSession(session);
     });
 
+    // Realtime subscription for AI Verifications
+    const aiVerificationsChannel = supabase
+      .channel('public:payment_ai_verifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'payment_ai_verifications' },
+        (payload) => {
+          setAiVerifications((prev) => [...prev, payload.new]);
+        }
+      )
+      .subscribe();
+
     return () => {
       subscription.unsubscribe();
+      supabase.removeChannel(aiVerificationsChannel);
     };
   }, []);
 
@@ -820,6 +841,7 @@ export const SupabaseDataProvider = ({ children }) => {
         plans,
         purchases,
         paymentProofs,
+        aiVerifications,
         dropWindows,
         menuItems,
         bookings,

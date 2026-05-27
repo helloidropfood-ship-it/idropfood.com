@@ -12,6 +12,7 @@ export const Approvals = () => {
     plans,
     purchases,
     paymentProofs,
+    aiVerifications,
     approvePurchase,
     rejectPurchase
   } = useMockData();
@@ -73,6 +74,7 @@ export const Approvals = () => {
               const purchase = purchases.find(p => p.id === proof.purchase_id);
               const user = purchase ? users.find(u => u.id === purchase.user_id) : null;
               const plan = purchase ? plans.find(p => p.id === purchase.plan_id) : null;
+              const aiResult = aiVerifications?.find(v => v.payment_proof_id === proof.id);
 
               return (
                 <div
@@ -128,6 +130,52 @@ export const Approvals = () => {
                     <div>Ref: <code>{proof.transaction_reference}</code></div>
                     <div>Method: <strong>{proof.payment_method.toUpperCase()}</strong></div>
                     <div>Amount: <strong style={{ color: 'var(--accent)' }}>Rs. {proof.submitted_amount.toLocaleString()}</strong></div>
+                  </div>
+
+                  {/* AI Verification Results */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>AI Verification</span>
+                    
+                    {!aiResult ? (
+                      <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        ⏳ Analyzing receipt...
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>Status:</span>
+                          <span style={{ 
+                            fontWeight: 700, 
+                            color: aiResult.verification_status === 'PERFECT_MATCH' ? '#10b981' : 
+                                   aiResult.verification_status === 'PARTIAL_MATCH' ? '#f59e0b' : 
+                                   aiResult.verification_status === 'MISMATCH' ? '#ef4444' : '#6b7280'
+                          }}>
+                            {aiResult.verification_status === 'PERFECT_MATCH' ? '✅ Perfect Match' : 
+                             aiResult.verification_status === 'PARTIAL_MATCH' ? '⚠️ Partial Match' : 
+                             aiResult.verification_status === 'MISMATCH' ? '❌ Mismatch' : '❓ Unclear'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Confidence:</span>
+                          <strong>{aiResult.confidence_score}%</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Trust Score:</span>
+                          <strong>{aiResult.trust_score} / 10</strong>
+                        </div>
+                        
+                        {aiResult.warnings?.length > 0 && (
+                          <div style={{ marginTop: '4px', color: '#ef4444', fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <strong style={{ color: 'var(--text-secondary)' }}>Warnings:</strong>
+                            {aiResult.warnings.map((w, i) => <span key={i}>• {w}</span>)}
+                          </div>
+                        )}
+                        
+                        <div style={{ marginTop: '4px', color: 'var(--text-muted)', fontSize: '0.75rem', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px' }}>
+                          "{aiResult.recommendation}"
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Action Review Buttons */}

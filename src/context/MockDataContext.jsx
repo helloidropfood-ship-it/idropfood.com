@@ -12,6 +12,7 @@ export const MockDataProvider = ({ children }) => {
   const [plans, setPlans] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [paymentProofs, setPaymentProofs] = useState([]);
+  const [aiVerifications, setAiVerifications] = useState([]);
   const [dropWindows, setDropWindows] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -148,6 +149,7 @@ export const MockDataProvider = ({ children }) => {
     setMenuItems(localGet('menuItems', seedMenus));
     setPurchases(localGet('purchases', []));
     setPaymentProofs(localGet('paymentProofs', []));
+    setAiVerifications(localGet('aiVerifications', []));
     setBookings(localGet('bookings', []));
     
     const defaultFixedWindows = [
@@ -669,6 +671,7 @@ export const MockDataProvider = ({ children }) => {
         plans,
         purchases,
         paymentProofs,
+        aiVerifications,
         dropWindows,
         menuItems,
         bookings,
