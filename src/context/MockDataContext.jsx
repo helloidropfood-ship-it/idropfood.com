@@ -572,7 +572,7 @@ export const MockDataProvider = ({ children }) => {
   };
 
   const createDropWindow = (date, name, startTime, endTime, capacity, cutoff) => {
-    const newWin = {
+    const newWindow = {
       id: `win-${Date.now()}`,
       date,
       window_name: name,
@@ -584,9 +584,47 @@ export const MockDataProvider = ({ children }) => {
       status: 'open',
       active: true
     };
-    const updated = [...dropWindows, newWin];
-    setDropWindows(updated);
-    localSet('dropWindows', updated);
+    setDropWindows(prev => [...prev, newWindow]);
+    localSet('dropWindows', [...dropWindows, newWindow]);
+    return newWindow;
+  };
+
+  const createDropWindowsBatch = async (dropsData, mealData) => {
+    const newWindows = dropsData.map((d, i) => ({
+      id: `win-${Date.now()}-${i}`,
+      ...d,
+      capacity: parseInt(d.capacity),
+      booked_count: 0,
+      status: 'open',
+      active: true
+    }));
+
+    setDropWindows(prev => [...prev, ...newWindows]);
+    localSet('dropWindows', [...dropWindows, ...newWindows]);
+
+    if (mealData) {
+      const newMenus = newWindows.map(w => ({
+        id: `menu-${Date.now()}-${w.id}`,
+        drop_window_id: w.id,
+        meal_name: mealData.meal_name,
+        description: mealData.description,
+        allergens: mealData.allergens,
+        image_url: mealData.image_url,
+        active: mealData.active !== undefined ? mealData.active : true
+      }));
+      setMenuItems(prev => [...prev, ...newMenus]);
+      localSet('menuItems', [...menuItems, ...newMenus]);
+    }
+    return newWindows;
+  };
+
+  const deleteDropWindow = (winId) => {
+    const newMenus = menuItems.filter(m => m.drop_window_id !== winId);
+    const newWindows = dropWindows.filter(w => w.id !== winId);
+    setMenuItems(newMenus);
+    setDropWindows(newWindows);
+    localSet('menuItems', newMenus);
+    localSet('dropWindows', newWindows);
   };
 
   const updateDropWindow = (id, updates) => {
@@ -690,7 +728,9 @@ export const MockDataProvider = ({ children }) => {
         markBookingDelivered,
         markBookingMissed,
         createDropWindow,
+        createDropWindowsBatch,
         updateDropWindow,
+        deleteDropWindow,
         uploadMenuImage,
         assignMenu,
         updatePlans,

@@ -673,6 +673,51 @@ export const SupabaseDataProvider = ({ children }) => {
     return data;
   };
 
+  const createDropWindowsBatch = async (dropsData, mealData) => {
+    const { data: insertedDrops, error } = await supabase
+      .from('drop_windows')
+      .insert(dropsData)
+      .select();
+    if (error) throw error;
+
+    if (mealData) {
+      const menuItemsToInsert = insertedDrops.map(drop => ({
+        drop_window_id: drop.id,
+        meal_name: mealData.meal_name,
+        description: mealData.description,
+        allergens: mealData.allergens,
+        image_url: mealData.image_url,
+        active: mealData.active !== undefined ? mealData.active : true
+      }));
+
+      const { error: mealErr } = await supabase
+        .from('menu_items')
+        .insert(menuItemsToInsert);
+      if (mealErr) throw mealErr;
+    }
+
+    if (currentAdmin) {
+      await fetchAdminData(currentAdmin);
+    }
+    return insertedDrops;
+  };
+
+  const deleteDropWindow = async (winId) => {
+    // First remove associated menu items if cascade is not enabled
+    await supabase.from('menu_items').delete().eq('drop_window_id', winId);
+    
+    const { error } = await supabase
+      .from('drop_windows')
+      .delete()
+      .eq('id', winId);
+    
+    if (error) throw error;
+    
+    if (currentAdmin) {
+      await fetchAdminData(currentAdmin);
+    }
+  };
+
   const updateDropWindow = async (winId, fields) => {
     const { data, error } = await supabase
       .from('drop_windows')
@@ -868,7 +913,9 @@ export const SupabaseDataProvider = ({ children }) => {
         markBookingDelivered,
         markBookingMissed,
         createDropWindow,
+        createDropWindowsBatch,
         updateDropWindow,
+        deleteDropWindow,
         uploadMenuImage,
         assignMenu,
         createPlan,

@@ -22,7 +22,14 @@ export const Schedule = () => {
   const [endTime, setEndTime] = useState('14:00');
   const [capacity, setCapacity] = useState('20');
   const [cutoffTime, setCutoffTime] = useState('');
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState(4);
+  const [selectedMealId, setSelectedMealId] = useState('');
   const [error, setError] = useState('');
+
+  // Extract unique meals for the dropdown
+  const { menuItems } = useMockData();
+  const uniqueMeals = Array.from(new Map((menuItems || []).map(m => [m.meal_name, m])).values());
 
   // Fixed Templates State
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -70,7 +77,7 @@ export const Schedule = () => {
     }
   };
 
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
     if (!date || !windowName || !startTime || !endTime || !capacity || !cutoffTime) {
       setError('Please fill in all fields.');
@@ -78,19 +85,57 @@ export const Schedule = () => {
     }
     const formattedStart = `${startTime}:00`;
     const formattedEnd = `${endTime}:00`;
-    const formattedCutoff = new Date(cutoffTime).toISOString();
 
-    createDropWindow(date, windowName, formattedStart, formattedEnd, capacity, formattedCutoff);
-    setIsAddOpen(false);
+    // Prepare drops array
+    const dropsToCreate = [];
+    const baseDate = new Date(date);
+    const baseCutoff = new Date(cutoffTime);
     
-    // Reset
-    setDate('');
-    setWindowName('Day Drop');
-    setStartTime('12:30');
-    setEndTime('14:00');
-    setCapacity('20');
-    setCutoffTime('');
-    setError('');
+    const count = repeatWeekly ? parseInt(repeatWeeks) : 1;
+    
+    for (let i = 0; i < count; i++) {
+      const dropDate = new Date(baseDate);
+      dropDate.setDate(dropDate.getDate() + (i * 7));
+      
+      const dropCutoff = new Date(baseCutoff);
+      dropCutoff.setDate(dropCutoff.getDate() + (i * 7));
+      
+      dropsToCreate.push({
+        date: dropDate.toISOString().split('T')[0],
+        window_name: windowName,
+        start_time: formattedStart,
+        end_time: formattedEnd,
+        capacity: parseInt(capacity),
+        cutoff_time: dropCutoff.toISOString(),
+        status: 'open',
+        active: true
+      });
+    }
+
+    let mealData = null;
+    if (selectedMealId) {
+      const existingMeal = uniqueMeals.find(m => m.id === selectedMealId);
+      if (existingMeal) mealData = existingMeal;
+    }
+
+    try {
+      await createDropWindowsBatch(dropsToCreate, mealData);
+      setIsAddOpen(false);
+      
+      // Reset
+      setDate('');
+      setWindowName('Day Drop');
+      setStartTime('12:30');
+      setEndTime('14:00');
+      setCapacity('20');
+      setCutoffTime('');
+      setRepeatWeekly(false);
+      setRepeatWeeks(4);
+      setSelectedMealId('');
+      setError('');
+    } catch (err) {
+      setError(err.message || 'Failed to create drops.');
+    }
   };
 
   const handleTemplateSubmit = (e) => {
@@ -250,16 +295,72 @@ export const Schedule = () => {
           >
             {win.active ? 'Disable' : 'Enable'}
           </button>
+          
+          <button
+            onClick={() => {
+              if (window.confirm("Are you sure you want to completely delete this drop window and its assigned menu? This action cannot be undone.")) {
+                deleteDropWindow(win.id);
+              }
+            }}
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: 'var(--error)',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              height: '38px',
+              transition: 'background var(--transition-fast)'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            Delete
+          </button>
         </div>
       </div>
     );
   };
 
-  const renderUpcomingList = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {[...dropWindows].sort((a,b) => new Date(a.date) - new Date(b.date)).map(win => renderDropCard(win))}
-    </div>
-  );
+  const renderUpcomingList = () => {
+    // Group drops by "Window Name - Day of Week"
+    const groupedDrops = {};
+    const sortedDrops = [...dropWindows].sort((a,b) => new Date(a.date) - new Date(b.date));
+    
+    sortedDrops.forEach(win => {
+      const d = new Date(win.date);
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+      const key = `${win.window_name}s - ${dayName}s`;
+      
+      if (!groupedDrops[key]) {
+        groupedDrops[key] = [];
+      }
+      groupedDrops[key].push(win);
+    });
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {Object.keys(groupedDrops).length === 0 && (
+          <p style={{ color: 'var(--text-muted)' }}>No upcoming drop windows scheduled.</p>
+        )}
+        
+        {Object.entries(groupedDrops).map(([groupName, drops]) => (
+          <div key={groupName} style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{groupName}</h3>
+              <Badge variant="secondary">{drops.length} {drops.length === 1 ? 'Drop' : 'Drops'}</Badge>
+            </div>
+            
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {drops.map(win => renderDropCard(win))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   const renderTemplates = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -351,8 +452,35 @@ export const Schedule = () => {
                 <FormInput label="Start Time" name="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
                 <FormInput label="End Time" name="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
               </div>
-              <FormInput label="Seat Capacity" name="capacity" type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} required />
-              <FormInput label="Cutoff Time" name="cutoffTime" type="datetime-local" value={cutoffTime} onChange={(e) => setCutoffTime(e.target.value)} required />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <FormInput label="Seat Capacity" name="capacity" type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} required />
+                <FormInput label="Cutoff Time" name="cutoffTime" type="datetime-local" value={cutoffTime} onChange={(e) => setCutoffTime(e.target.value)} required />
+              </div>
+              
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input type="checkbox" id="repeatWeekly" checked={repeatWeekly} onChange={(e) => setRepeatWeekly(e.target.checked)} style={{ cursor: 'pointer', accentColor: 'var(--accent)' }} />
+                  <label htmlFor="repeatWeekly" style={{ fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>Repeat Weekly</label>
+                </div>
+                {repeatWeekly && (
+                  <FormInput label="Number of Weeks" name="repeatWeeks" type="number" min="1" max="12" value={repeatWeeks} onChange={(e) => setRepeatWeeks(e.target.value)} required={repeatWeekly} />
+                )}
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '8px' }}>Assign Meal Plan (Optional)</label>
+                <select 
+                  value={selectedMealId} 
+                  onChange={(e) => setSelectedMealId(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: 'var(--radius-sm)' }}
+                >
+                  <option value="">-- Do not assign a meal yet --</option>
+                  {uniqueMeals.map(meal => (
+                    <option key={meal.id} value={meal.id}>{meal.meal_name}</option>
+                  ))}
+                </select>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>Select an existing meal template to automatically assign it to {repeatWeekly ? 'all created drops' : 'this drop'}.</p>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
                 <Button variant="secondary" onClick={() => setIsAddOpen(false)}>Cancel</Button>
                 <Button type="submit" variant="accent">Save Drop</Button>
