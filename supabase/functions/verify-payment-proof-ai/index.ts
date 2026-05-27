@@ -101,8 +101,8 @@ ${jsonSchemaText}
             parts: [
               { text: promptText },
               {
-                inline_data: {
-                  mime_type: fileData.type || "image/jpeg",
+                inlineData: {
+                  mimeType: (fileData.type && fileData.type !== 'application/octet-stream') ? fileData.type : "image/jpeg",
                   data: base64Image
                 }
               }
