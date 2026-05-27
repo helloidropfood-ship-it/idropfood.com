@@ -21,7 +21,11 @@ export const Schedule = () => {
   // Specific Drops State
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [date, setDate] = useState('');
-  const [windowName, setWindowName] = useState('Day Drop');
+  
+  // Set default windowName if available
+  const defaultWindowName = fixedDropWindows?.length > 0 ? fixedDropWindows[0].window_name : 'Day Drop';
+  const [windowName, setWindowName] = useState(defaultWindowName);
+  
   const [startTime, setStartTime] = useState('12:30');
   const [endTime, setEndTime] = useState('14:00');
   const [capacity, setCapacity] = useState('20');
@@ -78,6 +82,34 @@ export const Schedule = () => {
       prevDate.setDate(prevDate.getDate() - 1);
       const prevDateStr = prevDate.toISOString().split('T')[0];
       setCutoffTime(`${prevDateStr}T20:00`); 
+    }
+  };
+
+  const parseTimeString = (timeStr) => {
+    if (!timeStr) return null;
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return null;
+    let [ , h, m, period ] = match;
+    h = parseInt(h);
+    if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
+    if (period.toUpperCase() === 'AM' && h === 12) h = 0;
+    return `${h.toString().padStart(2, '0')}:${m}`;
+  };
+
+  const handleWindowNameChange = (e) => {
+    const val = e.target.value;
+    setWindowName(val);
+    
+    // Auto-fill times from template
+    const template = fixedDropWindows.find(w => w.window_name === val);
+    if (template && template.display_time) {
+      const parts = template.display_time.split(/[-–—]/);
+      if (parts.length === 2) {
+        const parsedStart = parseTimeString(parts[0]);
+        const parsedEnd = parseTimeString(parts[1]);
+        if (parsedStart) setStartTime(parsedStart);
+        if (parsedEnd) setEndTime(parsedEnd);
+      }
     }
   };
 
@@ -566,7 +598,17 @@ export const Schedule = () => {
             <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {error && <span style={{ color: 'var(--error)', fontSize: '0.8rem' }}>⚠️ {error}</span>}
               <FormInput label="Delivery Date" name="date" type="date" value={date} onChange={handleDateChange} required />
-              <FormInput label="Window Name" name="windowName" type="select" value={windowName} onChange={(e) => setWindowName(e.target.value)} options={[{ value: 'Day Drop', label: 'Day Drop' }, { value: 'Night Drop', label: 'Night Drop' }]} required />
+              
+              <FormInput 
+                label="Window Name (Template)" 
+                name="windowName" 
+                type="select" 
+                value={windowName} 
+                onChange={handleWindowNameChange} 
+                options={fixedDropWindows.map(t => ({ value: t.window_name, label: t.window_name }))} 
+                required 
+              />
+              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <FormInput label="Start Time" name="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
                 <FormInput label="End Time" name="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
