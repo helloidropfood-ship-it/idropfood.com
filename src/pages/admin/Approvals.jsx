@@ -25,6 +25,10 @@ export const Approvals = () => {
   // Zoom Receipt Modal State
   const [zoomUrl, setZoomUrl] = useState('');
 
+  // DEBUG LOG
+  console.log("Approvals.jsx RENDERED. Pending proofs:", paymentProofs.filter(p => p.status === 'pending').length, "Users:", users.length, "Purchases:", purchases.length);
+
+
   const pendingProofs = paymentProofs.filter(p => p.status === 'pending');
   const reviewedProofs = paymentProofs.filter(p => p.status !== 'pending');
 

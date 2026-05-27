@@ -203,9 +203,31 @@ ${jsonSchemaText}
 
   } catch (error) {
     console.error("Error processing webhook:", error);
+    
+    // Attempt to log error to DB if we have the record
+    try {
+      const payload = await req.clone().json().catch(() => null);
+      const record = payload?.record;
+      if (record?.id) {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        await supabase.from('payment_ai_verifications').insert({
+          purchase_id: record.purchase_id,
+          payment_proof_id: record.id,
+          provider: 'system-error',
+          verification_status: 'MISMATCH',
+          recommendation: `System Error: ${error.message}`.substring(0, 500)
+        });
+      }
+    } catch (e) {
+      console.error("Failed to log error to DB:", e);
+    }
+
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { "Content-Type": "application/json" },
-      status: 500
+      status: 200 // Return 200 to prevent Supabase Webhook infinite retries
     });
   }
 });

@@ -86,48 +86,54 @@ export const SupabaseDataProvider = ({ children }) => {
   };
 
   // Helper to fetch private user dashboard data (purchases, proofs, bookings)
-  const fetchUserData = async (publicProfile) => {
+  const fetchUserData = async (publicProfile, isAdmin = false) => {
     if (!publicProfile?.id) return;
     try {
       // 1. Fetch user purchases
-      const { data: purchaseData, error: purchaseErr } = await supabase
-        .from('purchases')
-        .select('*')
-        .eq('user_id', publicProfile.id)
-        .order('created_at', { ascending: false });
-      if (purchaseErr) throw purchaseErr;
-      setPurchases(purchaseData || []);
+      if (!isAdmin) {
+        const { data: purchaseData, error: purchaseErr } = await supabase
+          .from('purchases')
+          .select('*')
+          .eq('user_id', publicProfile.id)
+          .order('created_at', { ascending: false });
+        if (purchaseErr) throw purchaseErr;
+        setPurchases(purchaseData || []);
+      }
 
       // 2. Fetch user payment proofs & generate signed URLs
-      const { data: proofData, error: proofErr } = await supabase
-        .from('payment_proofs')
-        .select('*'); // RLS automatically limits to user's purchases
-      if (proofErr) throw proofErr;
-      
-      const proofsWithSignedUrls = await Promise.all((proofData || []).map(async (proof) => {
-        if (proof.proof_image_url) {
-          try {
-            const { data, error } = await supabase.storage
-              .from('payment_proofs')
-              .createSignedUrl(proof.proof_image_url, 3600);
-            if (error) return { ...proof, signed_proof_url: null };
-            return { ...proof, signed_proof_url: data.signedUrl };
-          } catch (e) {
-            return { ...proof, signed_proof_url: null };
+      if (!isAdmin) {
+        const { data: proofData, error: proofErr } = await supabase
+          .from('payment_proofs')
+          .select('*'); // RLS automatically limits to user's purchases
+        if (proofErr) throw proofErr;
+        
+        const proofsWithSignedUrls = await Promise.all((proofData || []).map(async (proof) => {
+          if (proof.proof_image_url) {
+            try {
+              const { data, error } = await supabase.storage
+                .from('payment_proofs')
+                .createSignedUrl(proof.proof_image_url, 3600);
+              if (error) return { ...proof, signed_proof_url: null };
+              return { ...proof, signed_proof_url: data.signedUrl };
+            } catch (e) {
+              return { ...proof, signed_proof_url: null };
+            }
           }
-        }
-        return { ...proof, signed_proof_url: null };
-      }));
-      setPaymentProofs(proofsWithSignedUrls);
+          return { ...proof, signed_proof_url: null };
+        }));
+        setPaymentProofs(proofsWithSignedUrls);
+      }
 
       // 3. Fetch user bookings
-      const { data: bookingData, error: bookingErr } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('user_id', publicProfile.id)
-        .order('created_at', { ascending: false });
-      if (bookingErr) throw bookingErr;
-      setBookings(bookingData || []);
+      if (!isAdmin) {
+        const { data: bookingData, error: bookingErr } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('user_id', publicProfile.id)
+          .order('created_at', { ascending: false });
+        if (bookingErr) throw bookingErr;
+        setBookings(bookingData || []);
+      }
     } catch (err) {
       console.error('Error fetching user data:', err);
     }
@@ -270,7 +276,7 @@ export const SupabaseDataProvider = ({ children }) => {
 
         if (profile) {
           setCurrentUser(profile);
-          await fetchUserData(profile);
+          await fetchUserData(profile, !!adminProfile);
         } else {
           if (adminProfile) {
             setCurrentUser(null);
