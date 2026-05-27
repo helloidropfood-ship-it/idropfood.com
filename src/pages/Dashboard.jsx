@@ -556,10 +556,10 @@ export const Dashboard = () => {
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
             <div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
-                Weekly Menu Gallery
+                My Weekly Schedule
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-                Select a day to view its available drops and add them to your schedule.
+                Your booked meal deliveries for the selected week.
               </p>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -624,7 +624,7 @@ export const Dashboard = () => {
             })}
           </div>
 
-          {/* Meal Cards Grid for Selected Day */}
+          {/* Meal Cards Grid for Selected Day (Booked Only) */}
           <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
             {(() => {
               // Calculate the actual date for the selected day tab (currentWeekStart is a Monday)
@@ -632,43 +632,31 @@ export const Dashboard = () => {
               selectedDate.setDate(selectedDate.getDate() + selectedDayIndex);
               const dateStr = selectedDate.toISOString().split('T')[0];
 
-              const wins = groupedWindows[dateStr] || [];
+              const wins = (groupedWindows[dateStr] || []).filter(win => {
+                return userBookings.some(b => b.drop_window_id === win.id && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status));
+              });
               
               if (wins.length === 0) {
                 return (
                   <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
-                    <p style={{ color: 'var(--text-muted)' }}>No drops scheduled for this day.</p>
+                    <p style={{ color: 'var(--text-muted)' }}>No meals scheduled for this day.</p>
                   </div>
                 );
               }
 
               return wins.map(win => {
-                const dayBookings = userBookings.filter(b => b.drop_window_id === win.id && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status));
-                const isBooked = dayBookings.length > 0;
-                
-                // Other bookings on the same day to prevent double booking
-                const anyDayBooking = userBookings.filter(b => {
-                   const w = dropWindows.find(dw => dw.id === b.drop_window_id);
-                   return w && w.date === dateStr && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status);
-                });
-
-                const remaining = win.capacity - win.booked_count;
-                const isFull = remaining <= 0;
-                const isPast = new Date() > new Date(win.cutoff_time);
-                const isSelectable = !isFull && !isPast && win.active && win.status !== 'hidden/cancelled';
+                const isPastCutoff = new Date() > new Date(win.cutoff_time);
                 
                 const menu = win.menu_item;
 
                 return (
                   <div key={win.id} className="meal-gallery-card" style={{ position: 'relative' }}>
-                    {isBooked && (
-                      <div style={{
-                        position: 'absolute', top: '24px', right: '24px', background: 'var(--success)', color: '#fff',
-                        fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: '4px', zIndex: 10
-                      }}>
-                        BOOKED
-                      </div>
-                    )}
+                    <div style={{
+                      position: 'absolute', top: '24px', right: '24px', background: 'var(--success)', color: '#fff',
+                      fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: '4px', zIndex: 10
+                    }}>
+                      BOOKED
+                    </div>
                     
                     <div style={{ width: '100%', height: '180px', borderRadius: '8px', overflow: 'hidden', background: '#2a2d36', position: 'relative' }}>
                       {menu?.image_url ? (
@@ -676,12 +664,6 @@ export const Dashboard = () => {
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                           No Image
-                        </div>
-                      )}
-                      {/* Scarcity badge */}
-                      {isSelectable && remaining <= 5 && !isBooked && (
-                        <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(245, 158, 11, 0.9)', color: '#000', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>
-                          Only {remaining} left!
                         </div>
                       )}
                     </div>
@@ -700,19 +682,115 @@ export const Dashboard = () => {
                       </p>
                     </div>
 
+                    <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: isPastCutoff ? 'var(--text-muted)' : 'var(--success)', fontWeight: 600 }}>
+                        {isPastCutoff ? 'Locked' : 'Scheduled'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          {/* --- END MY WEEKLY SCHEDULE --- */}
+
+          <div style={{ marginTop: '48px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
+                Available Menu Options
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+                Browse all upcoming meal drops and add them to your schedule.
+              </p>
+            </div>
+          </div>
+
+          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
+            {(() => {
+              const now = new Date();
+              const availableList = dropWindows.filter(win => {
+                if (!win.active || win.status === 'hidden/cancelled') return false;
+                if (new Date(win.cutoff_time) < now) return false;
+                
+                const hasBooked = userBookings.some(b => b.drop_window_id === win.id && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status));
+                if (hasBooked) return false;
+
+                return true;
+              }).sort((a,b) => new Date(a.date) - new Date(b.date));
+
+              if (availableList.length === 0) {
+                return (
+                  <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
+                    <p style={{ color: 'var(--text-muted)' }}>No additional meals are currently available to schedule.</p>
+                  </div>
+                );
+              }
+
+              return availableList.map(win => {
+                const dateStr = win.date;
+                const anyDayBooking = userBookings.filter(b => {
+                   const w = dropWindows.find(dw => dw.id === b.drop_window_id);
+                   return w && w.date === dateStr && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status);
+                });
+
+                const remaining = win.capacity - win.booked_count;
+                const isFull = remaining <= 0;
+                const isSelectable = !isFull;
+                
+                const menu = win.menu_item;
+                const displayDate = new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                return (
+                  <div key={win.id} className="meal-gallery-card" style={{ position: 'relative' }}>
+                    <div style={{ width: '100%', height: '180px', borderRadius: '8px', overflow: 'hidden', background: '#2a2d36', position: 'relative' }}>
+                      {menu?.image_url ? (
+                        <img src={menu.image_url} alt={menu.meal_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                          No Image
+                        </div>
+                      )}
+                      {/* Scarcity badge */}
+                      {isSelectable && remaining <= 5 && (
+                        <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(245, 158, 11, 0.9)', color: '#000', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>
+                          Only {remaining} left!
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-primary)', fontWeight: 700, display: 'block', marginBottom: '2px' }}>
+                            {displayDate}
+                          </span>
+                          <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                            {menu ? menu.meal_name : 'To Be Decided'}
+                          </h4>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 500 }}>
+                            {win.window_name} ({win.start_time.substring(0,5)} - {win.end_time.substring(0,5)})
+                          </span>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0, flex: 1 }}>
+                        {menu ? menu.description : 'Menu details for this drop have not been published yet.'}
+                      </p>
+                    </div>
+
                     <div style={{ marginTop: '12px' }}>
                       <button 
                         className="btn-gradient-gold-blue"
-                        disabled={!isSelectable || isBooked || (anyDayBooking.length > 0 && !isBooked) || activeCredits <= 0}
+                        disabled={!isSelectable || anyDayBooking.length > 0 || activeCredits <= 0}
                         onClick={() => {
-                          if (anyDayBooking.length > 0 && !isBooked) {
+                          if (anyDayBooking.length > 0) {
                             alert("You already have a scheduled drop for this day.");
                             return;
                           }
                           handleScheduleClick(win.id);
                         }}
                       >
-                        {isBooked ? 'Added to Schedule' : isPast ? 'Cutoff Passed' : isFull ? 'Sold Out' : 'Add to Schedule'}
+                        {isFull ? 'Sold Out' : 'Add to Schedule'}
                       </button>
                     </div>
                   </div>
