@@ -608,18 +608,20 @@ export const Dashboard = () => {
                   key={dayName}
                   className={`menu-tab ${isActive ? 'active' : ''}`}
                   onClick={() => setSelectedDayIndex(idx)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', position: 'relative' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', position: 'relative', paddingTop: '8px', paddingBottom: '8px' }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{dayName}</span>
+                  <span style={{ fontWeight: 700, letterSpacing: '0.05em' }}>{dayName.substring(0,3).toUpperCase()}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>{dateText}</span>
+                  
+                  {/* Centered Indicator Dot Below Date */}
+                  <div style={{ height: '6px', marginTop: '4px' }}>
                     {hasBooking && (
-                      <span 
-                        style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} 
+                      <div 
+                        style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)' }} 
                         title="Meal Scheduled"
                       />
                     )}
                   </div>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>{dateText}</span>
                 </div>
               );
             })}
