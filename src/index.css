@@ -467,16 +467,31 @@ a {
     flex-direction: column !important;
   }
 
-  .dash-left-col, .dash-right-col {
-    display: contents !important;
-  }
-
   .dash-item-success { order: 1; }
   .dash-item-balance { order: 2; }
-  .dash-right-col > div { order: 3; } /* Calendar block wraps it, but since it's display:contents, we assign order to its children */
+  .dash-item-gallery { order: 3; }
   .dash-item-packages { order: 4; }
   .dash-item-upcoming { order: 5; }
   .dash-item-history { order: 6; }
+}
+
+/* Desktop Grid for Dashboard */
+@media (min-width: 769px) {
+  .dash-main.u-grid {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 1fr) minmax(350px, 1.5fr) !important;
+    align-items: start;
+    gap: 32px;
+  }
+  .dash-item-success { grid-column: 1 / 2; }
+  .dash-item-balance { grid-column: 1 / 2; }
+  .dash-item-packages { grid-column: 1 / 2; }
+  .dash-item-upcoming { grid-column: 1 / 2; }
+  .dash-item-history { grid-column: 1 / 2; }
+  .dash-item-gallery { 
+    grid-column: 2 / 3; 
+    grid-row: 1 / 6; 
+  }
 }
 
 /* Weekly Menu Gallery Styles */
@@ -485,6 +500,14 @@ a {
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 24px;
+}
+
+.menu-gallery-tabs::-webkit-scrollbar {
+  display: none;
+}
+.menu-gallery-tabs {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 .menu-tab {

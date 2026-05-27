@@ -316,8 +316,7 @@ export const Dashboard = () => {
           alignItems: 'start'
         }}
       >
-        {/* Left Column: Credits Balance & Package Purchase */}
-        <div className="dash-left-col" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        {/* Left Column Items (Flat) */}
           {successMessage && (
             <div
               className="dash-item-success"
@@ -552,11 +551,9 @@ export const Dashboard = () => {
               </div>
             </Card>
           </div>
-        </div>
-
         {/* Right Column: Weekly Menu Gallery */}
-        <div className="dash-right-col animate-slide-up delay-200" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="dash-item-gallery animate-slide-up delay-200" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
             <div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
                 Weekly Menu Gallery
@@ -587,8 +584,8 @@ export const Dashboard = () => {
           )}
 
           {/* Day Tabs */}
-          <div className="menu-gallery-tabs">
-            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, idx) => {
+          <div className="menu-gallery-tabs" style={{ overflowX: 'auto', display: 'flex', gap: '8px', WebkitOverflowScrolling: 'touch' }}>
+            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((dayName, idx) => {
               const isActive = selectedDayIndex === idx;
               
               // Calculate specific date for the tab
@@ -608,7 +605,7 @@ export const Dashboard = () => {
                   key={dayName}
                   className={`menu-tab ${isActive ? 'active' : ''}`}
                   onClick={() => setSelectedDayIndex(idx)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', position: 'relative', paddingTop: '8px', paddingBottom: '8px' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', position: 'relative', paddingTop: '8px', paddingBottom: '8px', flex: '0 0 auto', minWidth: '60px' }}
                 >
                   <span style={{ fontWeight: 700, letterSpacing: '0.05em' }}>{dayName.substring(0,3).toUpperCase()}</span>
                   <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>{dateText}</span>
