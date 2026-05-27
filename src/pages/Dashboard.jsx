@@ -586,15 +586,30 @@ export const Dashboard = () => {
               const tabDate = new Date(currentWeekStart);
               tabDate.setDate(tabDate.getDate() + idx);
               const dateText = tabDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              
+              // Check if user has a booking on this date
+              const dateStr = tabDate.toISOString().split('T')[0];
+              const hasBooking = userBookings.some(b => {
+                const win = dropWindows.find(w => w.id === b.drop_window_id);
+                return win && win.date === dateStr && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status);
+              });
 
               return (
                 <div 
                   key={dayName}
                   className={`menu-tab ${isActive ? 'active' : ''}`}
                   onClick={() => setSelectedDayIndex(idx)}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', position: 'relative' }}
                 >
-                  <span>{dayName}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>{dayName}</span>
+                    {hasBooking && (
+                      <span 
+                        style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} 
+                        title="Meal Scheduled"
+                      />
+                    )}
+                  </div>
                   <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>{dateText}</span>
                 </div>
               );
