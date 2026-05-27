@@ -660,7 +660,7 @@ export const Dashboard = () => {
               return wins.map(win => {
                 const isPastCutoff = new Date() > new Date(win.cutoff_time);
                 
-                const menu = win.menu_item;
+                const menu = win.menu_item || menuItems.find(m => m.id === win.menu_item_id);
 
                 return (
                   <div key={win.id} className="meal-gallery-card" style={{ position: 'relative' }}>
@@ -751,7 +751,7 @@ export const Dashboard = () => {
                 const isFull = remaining <= 0;
                 const isSelectable = !isFull;
                 
-                const menu = win.menu_item;
+                const menu = win.menu_item || menuItems.find(m => m.id === win.menu_item_id);
                 const displayDate = new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
                 return (
