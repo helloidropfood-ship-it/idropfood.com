@@ -57,6 +57,31 @@ export const Dashboard = () => {
   const [retryError, setRetryError] = useState('');
   const [loadingRetry, setLoadingRetry] = useState(false);
 
+  // Weekly Menu Gallery states
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday is start of week
+    return new Date(d.setDate(diff));
+  });
+  const [selectedDayIndex, setSelectedDayIndex] = useState(() => {
+    const d = new Date();
+    return d.getDay() === 0 ? 6 : d.getDay() - 1; // 0=Mon, 6=Sun
+  });
+
+  const handlePrevWeek = () => {
+    const prev = new Date(currentWeekStart);
+    prev.setDate(prev.getDate() - 7);
+    setCurrentWeekStart(prev);
+  };
+
+  const handleNextWeek = () => {
+    const next = new Date(currentWeekStart);
+    next.setDate(next.getDate() + 7);
+    setCurrentWeekStart(next);
+  };
+
   const handleOpenRetryUpload = (purchase) => {
     const plan = plans.find(p => p.id === purchase.plan_id);
     setRetryPurchase(purchase);
@@ -520,15 +545,21 @@ export const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Right Column: Dynamic Scheduler Grid */}
+        {/* Right Column: Weekly Menu Gallery */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }} className="animate-slide-up delay-200">
-          <div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
-              Weekly Drop Schedule
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-              Select a date and click an open shift window to schedule a hot desk drop.
-            </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
+                Weekly Menu Gallery
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+                Select a day to view its available drops and add them to your schedule.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button variant="secondary" size="sm" onClick={handlePrevWeek}>&larr; Prev Week</Button>
+              <Button variant="secondary" size="sm" onClick={handleNextWeek}>Next Week &rarr;</Button>
+            </div>
           </div>
 
           {checkoutError && (
@@ -546,62 +577,117 @@ export const Dashboard = () => {
             </div>
           )}
 
-          {/* Calendar list */}
-          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
-            {Object.keys(groupedWindows).map(dateStr => {
-              const wins = groupedWindows[dateStr];
-              const dateObj = new Date(dateStr);
-              const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-              const dayNumber = dateObj.toLocaleDateString('en-US', { day: 'numeric' });
-              const monthName = dateObj.toLocaleDateString('en-US', { month: 'short' });
-
-              // Check if user has already scheduled in any window on this day
-              const dayBookings = userBookings.filter(b => {
-                const win = dropWindows.find(w => w.id === b.drop_window_id);
-                return win && win.date === dateStr && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status);
-              });
-
+          {/* Day Tabs */}
+          <div className="menu-gallery-tabs">
+            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, idx) => {
+              const isActive = selectedDayIndex === idx;
               return (
-                <div key={dateStr} style={{ position: 'relative' }}>
-                  <CalendarCard
-                    date={dateStr}
-                    dayName={dayName}
-                    dayNumber={dayNumber}
-                    monthName={monthName}
-                    windows={wins}
-                    selectedWindowId={dayBookings[0]?.drop_window_id}
-                    onSelectWindow={(windowId) => {
-                      // Check if already booked
-                      if (dayBookings.length > 0) {
-                        alert("You already have a scheduled drop for this day.");
-                        return;
-                      }
-                      handleScheduleClick(windowId);
-                    }}
-                    disabled={activeCredits <= 0 && dayBookings.length === 0}
-                  />
-                  {dayBookings.length > 0 && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        background: 'var(--primary)',
-                        color: 'white',
-                        fontSize: '0.62rem',
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: 'var(--radius-full)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
-                      }}
-                    >
-                      Booked
-                    </div>
-                  )}
+                <div 
+                  key={dayName}
+                  className={`menu-tab ${isActive ? 'active' : ''}`}
+                  onClick={() => setSelectedDayIndex(idx)}
+                >
+                  {dayName}
                 </div>
               );
             })}
+          </div>
+
+          {/* Meal Cards Grid for Selected Day */}
+          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
+            {(() => {
+              // Calculate the actual date for the selected day tab (currentWeekStart is a Monday)
+              const selectedDate = new Date(currentWeekStart);
+              selectedDate.setDate(selectedDate.getDate() + selectedDayIndex);
+              const dateStr = selectedDate.toISOString().split('T')[0];
+
+              const wins = groupedWindows[dateStr] || [];
+              
+              if (wins.length === 0) {
+                return (
+                  <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
+                    <p style={{ color: 'var(--text-muted)' }}>No drops scheduled for this day.</p>
+                  </div>
+                );
+              }
+
+              return wins.map(win => {
+                const dayBookings = userBookings.filter(b => b.drop_window_id === win.id && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status));
+                const isBooked = dayBookings.length > 0;
+                
+                // Other bookings on the same day to prevent double booking
+                const anyDayBooking = userBookings.filter(b => {
+                   const w = dropWindows.find(dw => dw.id === b.drop_window_id);
+                   return w && w.date === dateStr && ['scheduled', 'locked', 'delivered', 'missed'].includes(b.status);
+                });
+
+                const remaining = win.capacity - win.booked_count;
+                const isFull = remaining <= 0;
+                const isPast = new Date() > new Date(win.cutoff_time);
+                const isSelectable = !isFull && !isPast && win.active && win.status !== 'hidden/cancelled';
+                
+                const menu = win.menu_item;
+
+                return (
+                  <div key={win.id} className="meal-gallery-card" style={{ position: 'relative' }}>
+                    {isBooked && (
+                      <div style={{
+                        position: 'absolute', top: '24px', right: '24px', background: 'var(--success)', color: '#fff',
+                        fontSize: '0.7rem', fontWeight: 700, padding: '4px 8px', borderRadius: '4px', zIndex: 10
+                      }}>
+                        BOOKED
+                      </div>
+                    )}
+                    
+                    <div style={{ width: '100%', height: '180px', borderRadius: '8px', overflow: 'hidden', background: '#2a2d36', position: 'relative' }}>
+                      {menu?.image_url ? (
+                        <img src={menu.image_url} alt={menu.meal_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                          No Image
+                        </div>
+                      )}
+                      {/* Scarcity badge */}
+                      {isSelectable && remaining <= 5 && !isBooked && (
+                        <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(245, 158, 11, 0.9)', color: '#000', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>
+                          Only {remaining} left!
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                          {menu ? menu.meal_name : 'To Be Decided'}
+                        </h4>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 500 }}>
+                          {win.window_name} ({win.start_time.substring(0,5)} - {win.end_time.substring(0,5)})
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0, flex: 1 }}>
+                        {menu ? menu.description : 'Menu details for this drop have not been published yet.'}
+                      </p>
+                    </div>
+
+                    <div style={{ marginTop: '12px' }}>
+                      <button 
+                        className="btn-gradient-gold-blue"
+                        disabled={!isSelectable || isBooked || (anyDayBooking.length > 0 && !isBooked) || activeCredits <= 0}
+                        onClick={() => {
+                          if (anyDayBooking.length > 0 && !isBooked) {
+                            alert("You already have a scheduled drop for this day.");
+                            return;
+                          }
+                          handleScheduleClick(win.id);
+                        }}
+                      >
+                        {isBooked ? 'Added to Schedule' : isPast ? 'Cutoff Passed' : isFull ? 'Sold Out' : 'Add to Schedule'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </main>
