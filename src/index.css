@@ -312,6 +312,11 @@ a {
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
+.form-input option {
+  background-color: var(--bg-surface-solid);
+  color: var(--text-primary);
+}
+
 .form-input::placeholder {
   color: var(--text-muted);
 }
