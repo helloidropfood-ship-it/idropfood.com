@@ -102,7 +102,7 @@ ${jsonSchemaText}
               { text: promptText },
               {
                 inlineData: {
-                  mimeType: (fileData.type && fileData.type !== 'application/octet-stream') ? fileData.type : "image/jpeg",
+                  mimeType: (fileData.type && fileData.type !== 'application/octet-stream') ? fileData.type.split(';')[0].trim() : "image/jpeg",
                   data: base64Image
                 }
               }
@@ -111,14 +111,27 @@ ${jsonSchemaText}
         ],
         generationConfig: {
             temperature: 0.2,
-            response_mime_type: "application/json",
+            responseMimeType: "application/json",
         }
       })
     });
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
-      throw new Error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
+      
+      // Log error to DB so admin can see it on frontend
+      await supabase.from('payment_ai_verifications').insert({
+        purchase_id: record.purchase_id,
+        payment_proof_id: record.id,
+        provider: 'gemini-error',
+        verification_status: 'MISMATCH',
+        recommendation: `Gemini API Error: ${errorText}`.substring(0, 500)
+      });
+      
+      return new Response(JSON.stringify({ error: `Gemini API error: ${geminiResponse.status}` }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200
+      });
     }
 
     const geminiResult = await geminiResponse.json();
