@@ -607,8 +607,21 @@ export const Dashboard = () => {
                   onClick={() => setSelectedDayIndex(idx)}
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', position: 'relative', paddingTop: '8px', paddingBottom: '8px', flex: '0 0 auto', minWidth: '60px' }}
                 >
-                  <span style={{ fontWeight: 700, letterSpacing: '0.05em' }}>{dayName.substring(0,3).toUpperCase()}</span>
-                  <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>{dateText}</span>
+                  <span style={{ 
+                    fontWeight: 700, 
+                    letterSpacing: '0.05em',
+                    opacity: hasBooking ? 1 : 0.4,
+                    color: hasBooking ? 'var(--text-primary)' : 'inherit'
+                  }}>
+                    {dayName.substring(0,3).toUpperCase()}
+                  </span>
+                  <span style={{ 
+                    fontSize: '0.75rem', 
+                    opacity: hasBooking ? 0.8 : 0.3, 
+                    fontWeight: 400 
+                  }}>
+                    {dateText}
+                  </span>
                   
                   {/* Centered Indicator Dot Below Date */}
                   <div style={{ height: '6px', marginTop: '4px' }}>
