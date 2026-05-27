@@ -581,13 +581,21 @@ export const Dashboard = () => {
           <div className="menu-gallery-tabs">
             {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((dayName, idx) => {
               const isActive = selectedDayIndex === idx;
+              
+              // Calculate specific date for the tab
+              const tabDate = new Date(currentWeekStart);
+              tabDate.setDate(tabDate.getDate() + idx);
+              const dateText = tabDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
               return (
                 <div 
                   key={dayName}
                   className={`menu-tab ${isActive ? 'active' : ''}`}
                   onClick={() => setSelectedDayIndex(idx)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
                 >
-                  {dayName}
+                  <span>{dayName}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 400 }}>{dateText}</span>
                 </div>
               );
             })}
