@@ -55,8 +55,8 @@ export const Schedule = () => {
 
   // Calendar Helpers
   const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
   
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
@@ -72,6 +72,24 @@ export const Schedule = () => {
       days.push(new Date(currentYear, currentMonth, i));
     }
     return days;
+  };
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
   };
 
   const handleDateChange = (e) => {
@@ -245,7 +263,12 @@ export const Schedule = () => {
     return (
       <div style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{today.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button variant="secondary" size="sm" onClick={handlePrevMonth}>&larr; Prev</Button>
+            <Button variant="secondary" size="sm" onClick={() => { setCurrentMonth(today.getMonth()); setCurrentYear(today.getFullYear()); }}>Today</Button>
+            <Button variant="secondary" size="sm" onClick={handleNextMonth}>Next &rarr;</Button>
+          </div>
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }}>
