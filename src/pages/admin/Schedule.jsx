@@ -13,6 +13,7 @@ export const Schedule = () => {
 
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'templates'
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
+  const [selectedDrops, setSelectedDrops] = useState([]);
   
   // Specific Drops State
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -159,6 +160,45 @@ export const Schedule = () => {
     setIsTemplateModalOpen(true);
   };
 
+  const handleSelectDrop = (dropId) => {
+    setSelectedDrops(prev => 
+      prev.includes(dropId) ? prev.filter(id => id !== dropId) : [...prev, dropId]
+    );
+  };
+
+  const handleSelectGroup = (drops) => {
+    const dropIds = drops.map(d => d.id);
+    const allSelected = dropIds.every(id => selectedDrops.includes(id));
+    
+    if (allSelected) {
+      setSelectedDrops(prev => prev.filter(id => !dropIds.includes(id)));
+    } else {
+      setSelectedDrops(prev => [...new Set([...prev, ...dropIds])]);
+    }
+  };
+
+  const handleBulkAction = async (action) => {
+    if (selectedDrops.length === 0) return;
+    
+    try {
+      if (action === 'delete') {
+        if (window.confirm(`Are you sure you want to completely delete ${selectedDrops.length} drop(s)?`)) {
+          // Use the mock data context methods
+          deleteDropWindowsBatch(selectedDrops);
+          setSelectedDrops([]);
+        }
+      } else if (action === 'enable') {
+        updateDropWindowsBatch(selectedDrops, { active: true });
+        setSelectedDrops([]);
+      } else if (action === 'disable') {
+        updateDropWindowsBatch(selectedDrops, { active: false });
+        setSelectedDrops([]);
+      }
+    } catch (err) {
+      alert(err.message || 'Bulk action failed');
+    }
+  };
+
   // Rendering
   const renderCalendarView = () => {
     const days = getDaysArray();
@@ -240,16 +280,25 @@ export const Schedule = () => {
 
   const renderDropCard = (win) => {
     const cutoffDate = new Date(win.cutoff_time);
+    const isSelected = selectedDrops.includes(win.id);
+    
     return (
-      <div key={win.id} style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-            </span>
-            <Badge variant={win.window_name === 'Day Drop' ? 'primary' : 'accent'} outline>{win.window_name}</Badge>
-            {!win.active && <Badge variant="secondary">Disabled</Badge>}
-          </div>
+      <div key={win.id} style={{ background: isSelected ? 'rgba(99, 102, 241, 0.05)' : 'var(--bg-surface-solid)', border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-color)'}`, borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px', transition: 'all 0.2s' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <input 
+            type="checkbox" 
+            checked={isSelected}
+            onChange={() => handleSelectDrop(win.id)}
+            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+          />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {new Date(win.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </span>
+              <Badge variant={win.window_name === 'Day Drop' ? 'primary' : 'accent'} outline>{win.window_name}</Badge>
+              {!win.active && <Badge variant="secondary">Disabled</Badge>}
+            </div>
           
           <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
             <span>⏰ Duration: <strong>{win.start_time.substring(0, 5)} - {win.end_time.substring(0, 5)}</strong></span>
@@ -349,7 +398,15 @@ export const Schedule = () => {
         {Object.entries(groupedDrops).map(([groupName, drops]) => (
           <div key={groupName} style={{ background: 'var(--bg-surface-solid)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{groupName}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={drops.length > 0 && drops.every(d => selectedDrops.includes(d.id))}
+                  onChange={() => handleSelectGroup(drops)}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{groupName}</h3>
+              </div>
               <Badge variant="secondary">{drops.length} {drops.length === 1 ? 'Drop' : 'Drops'}</Badge>
             </div>
             
@@ -438,6 +495,18 @@ export const Schedule = () => {
       {activeTab === 'upcoming' && viewMode === 'calendar' && renderCalendarView()}
       {activeTab === 'upcoming' && viewMode === 'list' && renderUpcomingList()}
       {activeTab === 'templates' && renderTemplates()}
+
+      {selectedDrops.length > 0 && (
+        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: 'var(--bg-surface-solid)', padding: '16px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 100 }}>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{selectedDrops.length} selected</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button variant="secondary" onClick={() => handleBulkAction('enable')} size="sm">Enable</Button>
+            <Button variant="secondary" onClick={() => handleBulkAction('disable')} size="sm">Disable</Button>
+            <Button variant="secondary" onClick={() => handleBulkAction('delete')} style={{ color: 'var(--error)', borderColor: 'rgba(239, 68, 68, 0.3)' }} size="sm">Delete</Button>
+          </div>
+          <button onClick={() => setSelectedDrops([])} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '8px' }}>×</button>
+        </div>
+      )}
 
       {/* Add Specific Drop Modal */}
       {isAddOpen && (

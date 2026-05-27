@@ -732,6 +732,39 @@ export const SupabaseDataProvider = ({ children }) => {
     return data;
   };
 
+  const deleteDropWindowsBatch = async (winIds) => {
+    if (!winIds || winIds.length === 0) return;
+    
+    // First remove associated menu items if cascade is not enabled
+    await supabase.from('menu_items').delete().in('drop_window_id', winIds);
+    
+    const { error } = await supabase
+      .from('drop_windows')
+      .delete()
+      .in('id', winIds);
+    
+    if (error) throw error;
+    
+    if (currentAdmin) {
+      await fetchAdminData(currentAdmin);
+    }
+  };
+
+  const updateDropWindowsBatch = async (winIds, fields) => {
+    if (!winIds || winIds.length === 0) return;
+    
+    const { error } = await supabase
+      .from('drop_windows')
+      .update(fields)
+      .in('id', winIds);
+      
+    if (error) throw error;
+    
+    if (currentAdmin) {
+      await fetchAdminData(currentAdmin);
+    }
+  };
+
   const uploadMenuImage = async (file) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
@@ -916,6 +949,8 @@ export const SupabaseDataProvider = ({ children }) => {
         createDropWindowsBatch,
         updateDropWindow,
         deleteDropWindow,
+        deleteDropWindowsBatch,
+        updateDropWindowsBatch,
         uploadMenuImage,
         assignMenu,
         createPlan,

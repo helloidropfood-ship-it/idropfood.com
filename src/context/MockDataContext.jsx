@@ -633,6 +633,21 @@ export const MockDataProvider = ({ children }) => {
     localSet('dropWindows', updated);
   };
 
+  const deleteDropWindowsBatch = (winIds) => {
+    const newMenus = menuItems.filter(m => !winIds.includes(m.drop_window_id));
+    const newWindows = dropWindows.filter(w => !winIds.includes(w.id));
+    setMenuItems(newMenus);
+    setDropWindows(newWindows);
+    localSet('menuItems', newMenus);
+    localSet('dropWindows', newWindows);
+  };
+
+  const updateDropWindowsBatch = (winIds, updates) => {
+    const updated = dropWindows.map(w => winIds.includes(w.id) ? { ...w, ...updates } : w);
+    setDropWindows(updated);
+    localSet('dropWindows', updated);
+  };
+
   const uploadMenuImage = async (file) => {
     try {
       return URL.createObjectURL(file);
@@ -731,6 +746,8 @@ export const MockDataProvider = ({ children }) => {
         createDropWindowsBatch,
         updateDropWindow,
         deleteDropWindow,
+        deleteDropWindowsBatch,
+        updateDropWindowsBatch,
         uploadMenuImage,
         assignMenu,
         updatePlans,
