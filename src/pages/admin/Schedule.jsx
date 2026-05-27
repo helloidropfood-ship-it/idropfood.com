@@ -7,7 +7,8 @@ import Badge from '../../components/Badge';
 
 export const Schedule = () => {
   const { 
-    dropWindows, createDropWindow, updateDropWindow,
+    dropWindows, createDropWindow, updateDropWindow, deleteDropWindow,
+    createDropWindowsBatch, deleteDropWindowsBatch, updateDropWindowsBatch,
     fixedDropWindows, createFixedWindow, updateFixedWindow, deleteFixedWindow 
   } = useMockData();
 
