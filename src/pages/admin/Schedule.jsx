@@ -15,6 +15,8 @@ export const Schedule = () => {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'templates'
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'calendar'
   const [selectedDrops, setSelectedDrops] = useState([]);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
   
   // Specific Drops State
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -178,23 +180,26 @@ export const Schedule = () => {
     }
   };
 
-  const handleBulkAction = async (action) => {
-    if (selectedDrops.length === 0) return;
+  const handleBulkActionClick = (action) => {
+    setConfirmAction(action);
+    setIsConfirmModalOpen(true);
+  };
+
+  const executeBulkAction = async () => {
+    if (!confirmAction || selectedDrops.length === 0) return;
     
     try {
-      if (action === 'delete') {
-        if (window.confirm(`Are you sure you want to completely delete ${selectedDrops.length} drop(s)?`)) {
-          // Use the mock data context methods
-          deleteDropWindowsBatch(selectedDrops);
-          setSelectedDrops([]);
-        }
-      } else if (action === 'enable') {
-        updateDropWindowsBatch(selectedDrops, { active: true });
-        setSelectedDrops([]);
-      } else if (action === 'disable') {
-        updateDropWindowsBatch(selectedDrops, { active: false });
-        setSelectedDrops([]);
+      if (confirmAction === 'delete') {
+        // Use the mock data context methods
+        await deleteDropWindowsBatch(selectedDrops);
+      } else if (confirmAction === 'enable') {
+        await updateDropWindowsBatch(selectedDrops, { active: true });
+      } else if (confirmAction === 'disable') {
+        await updateDropWindowsBatch(selectedDrops, { active: false });
       }
+      setSelectedDrops([]);
+      setIsConfirmModalOpen(false);
+      setConfirmAction(null);
     } catch (err) {
       alert(err.message || 'Bulk action failed');
     }
@@ -393,6 +398,24 @@ export const Schedule = () => {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {dropWindows.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 8px' }}>
+            <input 
+              type="checkbox" 
+              checked={selectedDrops.length === dropWindows.length}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedDrops(dropWindows.map(w => w.id));
+                } else {
+                  setSelectedDrops([]);
+                }
+              }}
+              style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+            />
+            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Select All Upcoming Drops ({dropWindows.length})</span>
+          </div>
+        )}
+
         {Object.keys(groupedDrops).length === 0 && (
           <p style={{ color: 'var(--text-muted)' }}>No upcoming drop windows scheduled.</p>
         )}
@@ -502,11 +525,36 @@ export const Schedule = () => {
         <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: 'var(--bg-surface-solid)', padding: '16px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', gap: '20px', zIndex: 100 }}>
           <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{selectedDrops.length} selected</span>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Button variant="secondary" onClick={() => handleBulkAction('enable')} size="sm">Enable</Button>
-            <Button variant="secondary" onClick={() => handleBulkAction('disable')} size="sm">Disable</Button>
-            <Button variant="secondary" onClick={() => handleBulkAction('delete')} style={{ color: 'var(--error)', borderColor: 'rgba(239, 68, 68, 0.3)' }} size="sm">Delete</Button>
+            <Button variant="secondary" onClick={() => handleBulkActionClick('enable')} size="sm">Enable</Button>
+            <Button variant="secondary" onClick={() => handleBulkActionClick('disable')} size="sm">Disable</Button>
+            <Button variant="secondary" onClick={() => handleBulkActionClick('delete')} style={{ color: 'var(--error)', borderColor: 'rgba(239, 68, 68, 0.3)' }} size="sm">Delete</Button>
           </div>
           <button onClick={() => setSelectedDrops([])} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', marginLeft: '8px' }}>×</button>
+        </div>
+      )}
+
+      {/* Custom Confirmation Modal */}
+      {isConfirmModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1100, background: 'rgba(3, 4, 6, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: '24px', textAlign: 'center' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, marginBottom: '16px', color: confirmAction === 'delete' ? 'var(--error)' : 'var(--text-primary)' }}>
+              Confirm Bulk {confirmAction.charAt(0).toUpperCase() + confirmAction.slice(1)}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.5' }}>
+              Are you sure you want to <strong>{confirmAction}</strong> {selectedDrops.length} selected drop window(s)?
+              {confirmAction === 'delete' && " This action cannot be undone and will also delete any assigned meals."}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <Button variant="secondary" onClick={() => setIsConfirmModalOpen(false)}>Cancel</Button>
+              <Button 
+                variant="accent" 
+                onClick={executeBulkAction}
+                style={{ background: confirmAction === 'delete' ? 'var(--error)' : 'var(--primary)' }}
+              >
+                Yes, {confirmAction}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
