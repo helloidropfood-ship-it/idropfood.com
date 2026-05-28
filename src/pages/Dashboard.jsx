@@ -675,7 +675,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Meal Cards Grid for Selected Day (Booked Only) */}
-          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
+          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '24px' }}>
             {(() => {
               // Calculate the actual date for the selected day tab (currentWeekStart is a Monday)
               const selectedDate = new Date(currentWeekStart);
@@ -756,7 +756,7 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '24px' }}>
+          <div className="u-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '24px' }}>
             {(() => {
               const now = new Date();
               const availableList = dropWindows.filter(win => {
