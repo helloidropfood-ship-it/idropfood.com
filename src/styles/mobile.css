@@ -163,6 +163,7 @@
     padding: 20px 16px !important;
     grid-template-columns: 1fr !important;
     gap: 24px !important;
+    align-items: stretch !important;
   }
 
   .page-dashboard .dash-plan-row {
