@@ -590,13 +590,13 @@ export const Dashboard = () => {
                     <Button variant="secondary" size="sm" onClick={handlePrevWeek} style={{ position: 'relative' }}>
                       &larr; Prev Week
                       {hasPrevWeekBookings && (
-                        <span style={{ position: 'absolute', top: '-3px', right: '-3px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 10px var(--success)' }} title="Bookings in previous weeks" />
+                        <span style={{ position: 'absolute', top: '-5px', right: '-5px', width: '15px', height: '15px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 15px var(--success)' }} title="Bookings in previous weeks" />
                       )}
                     </Button>
                     <Button variant="secondary" size="sm" onClick={handleNextWeek} style={{ position: 'relative' }}>
                       Next Week &rarr;
                       {hasNextWeekBookings && (
-                        <span style={{ position: 'absolute', top: '-3px', right: '-3px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 10px var(--success)' }} title="Bookings in future weeks" />
+                        <span style={{ position: 'absolute', top: '-5px', right: '-5px', width: '15px', height: '15px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 15px var(--success)' }} title="Bookings in future weeks" />
                       )}
                     </Button>
                   </>
