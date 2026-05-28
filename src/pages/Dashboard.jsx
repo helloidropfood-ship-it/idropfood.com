@@ -552,7 +552,7 @@ export const Dashboard = () => {
             </Card>
           </div>
         {/* Right Column: Weekly Menu Gallery */}
-        <div className="dash-item-gallery animate-slide-up delay-200" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <div className="dash-item-gallery animate-slide-up delay-200" style={{ display: 'flex', flexDirection: 'column', gap: '28px', minWidth: 0 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
             <div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 700, marginBottom: '4px' }}>
