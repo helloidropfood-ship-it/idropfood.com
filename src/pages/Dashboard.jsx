@@ -563,8 +563,45 @@ export const Dashboard = () => {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Button variant="secondary" size="sm" onClick={handlePrevWeek}>&larr; Prev Week</Button>
-              <Button variant="secondary" size="sm" onClick={handleNextWeek}>Next Week &rarr;</Button>
+              {(() => {
+                const hasPrevWeekBookings = userBookings.some(b => {
+                  if (!['scheduled', 'locked', 'delivered', 'missed'].includes(b.status)) return false;
+                  const win = dropWindows.find(w => w.id === b.drop_window_id);
+                  if (!win) return false;
+                  const winDate = new Date(win.date);
+                  winDate.setHours(0,0,0,0);
+                  return winDate < currentWeekStart;
+                });
+
+                const hasNextWeekBookings = userBookings.some(b => {
+                  if (!['scheduled', 'locked', 'delivered', 'missed'].includes(b.status)) return false;
+                  const win = dropWindows.find(w => w.id === b.drop_window_id);
+                  if (!win) return false;
+                  const nextWeekStart = new Date(currentWeekStart);
+                  nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+                  nextWeekStart.setHours(0,0,0,0);
+                  const winDate = new Date(win.date);
+                  winDate.setHours(0,0,0,0);
+                  return winDate >= nextWeekStart;
+                });
+
+                return (
+                  <>
+                    <Button variant="secondary" size="sm" onClick={handlePrevWeek} style={{ position: 'relative' }}>
+                      &larr; Prev Week
+                      {hasPrevWeekBookings && (
+                        <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)' }} title="Bookings in previous weeks" />
+                      )}
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={handleNextWeek} style={{ position: 'relative' }}>
+                      Next Week &rarr;
+                      {hasNextWeekBookings && (
+                        <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)' }} title="Bookings in future weeks" />
+                      )}
+                    </Button>
+                  </>
+                );
+              })()}
             </div>
           </div>
 
