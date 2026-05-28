@@ -621,7 +621,7 @@ export const Dashboard = () => {
           )}
 
           {/* Day Tabs */}
-          <div className="menu-gallery-tabs" style={{ overflowX: 'auto', display: 'flex', gap: '8px', WebkitOverflowScrolling: 'touch' }}>
+          <div className="menu-gallery-tabs" style={{ overflowX: 'auto', display: 'flex', gap: '8px', WebkitOverflowScrolling: 'touch', width: '100%', maxWidth: '100%' }}>
             {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((dayName, idx) => {
               const isActive = selectedDayIndex === idx;
               
